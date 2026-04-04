@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HYDRA-7Z | Industrial Control Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-secondary-fixed-variant": "#5e4200",
+                "tertiary-container": "#00d5e2",
+                "primary": "#a4e6ff",
+                "error-container": "#93000a",
+                "primary-container": "#00d1ff",
+                "on-error": "#690005",
+                "tertiary": "#4bf1ff",
+                "on-primary": "#003543",
+                "on-primary-fixed-variant": "#004e60",
+                "secondary-fixed-dim": "#ffba20",
+                "on-primary-container": "#00566a",
+                "secondary": "#ffdb9d",
+                "primary-fixed": "#b7eaff",
+                "on-secondary-fixed": "#271900",
+                "on-background": "#e5e2e1",
+                "on-tertiary-container": "#00585e",
+                "inverse-on-surface": "#313030",
+                "on-surface": "#e5e2e1",
+                "surface-container-highest": "#353534",
+                "on-surface-variant": "#bbc9cf",
+                "background": "#131313",
+                "surface-container-lowest": "#0e0e0e",
+                "surface-bright": "#393939",
+                "surface": "#131313",
+                "inverse-surface": "#e5e2e1",
+                "outline": "#859399",
+                "inverse-primary": "#00677f",
+                "secondary-fixed": "#ffdea8",
+                "on-error-container": "#ffdad6",
+                "tertiary-fixed": "#7df4ff",
+                "error": "#ffb4ab",
+                "surface-container": "#201f1f",
+                "surface-tint": "#4cd6ff",
+                "surface-dim": "#131313",
+                "on-tertiary": "#00363a",
+                "secondary-container": "#feb700",
+                "on-tertiary-fixed-variant": "#004f54",
+                "on-tertiary-fixed": "#002022",
+                "on-primary-fixed": "#001f28",
+                "tertiary-fixed-dim": "#00dbe9",
+                "outline-variant": "#3c494e",
+                "surface-container-low": "#1c1b1b",
+                "surface-variant": "#353534",
+                "surface-container-high": "#2a2a2a",
+                "primary-fixed-dim": "#4cd6ff",
+                "on-secondary-container": "#6b4b00",
+                "on-secondary": "#412d00"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(28, 27, 27, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .scada-grid {
+            background-image: radial-gradient(circle at 1px 1px, rgba(60, 73, 78, 0.1) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .active-glow {
+            box-shadow: 0 0 20px rgba(0, 209, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body scada-grid">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-8 h-16 w-full border-b border-outline-variant/15 bg-[#131313] dark:bg-[#131313]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#a4e6ff]">HYDRA-7Z</span>
+<nav class="hidden md:flex gap-6 font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem]">
+<span class="text-[#00d1ff] font-bold">System Status: NOMINAL</span>
+<span class="text-[#444444]">Active Flow: 4.2L/s</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#a4e6ff] hover:bg-[#1c1b1b] transition-colors duration-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#a4e6ff] hover:bg-[#1c1b1b] transition-colors duration-300">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Operator Profile Portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDotNArSBIQlEiuFAgkrWwwnNvghguzczp6puvIxTyPndCPlczO487gpuNsKnRTWtItKzSlVaq1yBI6wecI3Ns02RO0EudnzX-jjXNEa-vTYWkASvv3JGgrEGqpxJ8otQXtNlEFrFIqQwdtg51T4pL4EPRTjxTpFCJb0uGcXAvaZNCPPNPoX3nksX5Zy9CXtrWyojFt5cS2xdbZp48KRdxTr0kMo2SXJeDmYPhMCW-nKjOCeiQgyaOe0E8DKbYba3bfsI3ypwhO3gk"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 flex flex-col border-r border-outline-variant/15 pt-20 pb-8 px-4 bg-[#131313] dark:bg-[#131313] hidden md:flex">
+<div class="mb-10 px-4">
+<h2 class="text-lg font-black text-[#a4e6ff] mb-1">HYDRA-7Z</h2>
+<p class="text-[0.625rem] font-['Space_Grotesk'] tracking-[0.15rem] text-[#888888] uppercase">OPERATOR UNIT 01</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded text-[#00d1ff] border-l-2 border-[#4bf1ff] bg-[#00d1ff]/10 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+                Schedule
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                Logs
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">warning</span>
+                Alerts
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="space-y-4 pt-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 px-4 text-[#888888] hover:text-white text-xs uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 px-4 text-[#888888] hover:text-white text-xs uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">terminal</span>
+                Diagnostic
+            </a>
+<button class="w-full mt-4 py-3 px-4 bg-error-container text-on-error-container text-[0.7rem] font-bold tracking-widest uppercase rounded hover:bg-error transition-colors">
+                FORCE SHUTDOWN
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 px-8 pb-12">
+<!-- Header Section with Key Metrics -->
+<div class="flex flex-col lg:flex-row justify-between items-start gap-8 mb-12">
+<div class="space-y-2">
+<span class="text-label-sm uppercase tracking-[0.2rem] text-outline text-[0.625rem]">System Overview</span>
+<h1 class="font-headline text-5xl font-black text-on-surface">MAIN CONSOLE</h1>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full lg:w-auto">
+<!-- Master Valve Status -->
+<div class="bg-surface-container-low p-6 rounded-lg border-l-4 border-tertiary active-glow">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[0.625rem] font-headline uppercase tracking-widest text-on-surface-variant">Master Valve</span>
+<span class="material-symbols-outlined text-tertiary">valve</span>
+</div>
+<div class="text-3xl font-headline font-bold text-on-surface">OPEN</div>
+<div class="text-[0.625rem] text-tertiary uppercase mt-1">Status: Operational</div>
+</div>
+<!-- Live Flow Rate -->
+<div class="bg-surface-container-low p-6 rounded-lg">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[0.625rem] font-headline uppercase tracking-widest text-on-surface-variant">Live Flow Rate</span>
+<span class="material-symbols-outlined text-primary">waves</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-bold text-on-surface">4.2</span>
+<span class="text-sm font-headline text-outline">L/S</span>
+</div>
+<div class="mt-2 w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[42%]"></div>
+</div>
+</div>
+<!-- System Pressure -->
+<div class="bg-surface-container-low p-6 rounded-lg">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[0.625rem] font-headline uppercase tracking-widest text-on-surface-variant">System Pressure</span>
+<span class="material-symbols-outlined text-secondary">compress</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-bold text-on-surface">62</span>
+<span class="text-sm font-headline text-outline">PSI</span>
+</div>
+<div class="text-[0.625rem] text-on-surface-variant mt-1">OPTIMAL RANGE: 55-70</div>
+</div>
+</div>
+</div>
+<!-- Dashboard Layout Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+<!-- Left Column: Active Zones (Main Interactive Area) -->
+<div class="xl:col-span-8 space-y-8">
+<div class="flex justify-between items-end border-b border-outline-variant/10 pb-4">
+<h3 class="font-headline text-lg font-bold tracking-tight text-primary">ZONE IRRIGATION MATRIX</h3>
+<button class="text-[0.625rem] font-bold uppercase tracking-widest text-outline hover:text-primary transition-colors">Emergency Stop All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Zone 1: Active -->
+<div class="bg-surface-container p-5 rounded-lg border-l-2 border-tertiary relative overflow-hidden active-glow">
+<div class="absolute top-0 right-0 p-2 opacity-5">
+<span class="text-6xl font-headline font-black">01</span>
+</div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="font-headline font-bold text-sm">FRONT LAWN</h4>
+<span class="text-[0.625rem] text-tertiary uppercase tracking-tighter">Zone 01 - RUNNING</span>
+</div>
+<span class="material-symbols-outlined text-tertiary animate-pulse" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-[0.6875rem] text-on-surface-variant">
+<span>Remaining Time</span>
+<span class="text-on-surface font-mono">14:22</span>
+</div>
+<button class="w-full py-2 bg-tertiary/10 text-tertiary text-[0.625rem] font-bold uppercase tracking-widest border border-tertiary/20 hover:bg-tertiary hover:text-on-tertiary transition-all">STOP FLOW</button>
+</div>
+</div>
+<!-- Zone 2: Idle -->
+<div class="bg-surface-container-low p-5 rounded-lg border-l-2 border-outline-variant/30 grayscale hover:grayscale-0 transition-all">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="font-headline font-bold text-sm">REAR GARDEN</h4>
+<span class="text-[0.625rem] text-outline uppercase tracking-tighter">Zone 02 - IDLE</span>
+</div>
+<span class="material-symbols-outlined text-outline">mode_standby</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-[0.6875rem] text-on-surface-variant">
+<span>Next Run</span>
+<span class="text-on-surface">Tomorrow 06:00</span>
+</div>
+<button class="w-full py-2 bg-primary/10 text-primary text-[0.625rem] font-bold uppercase tracking-widest border border-primary/20 hover:bg-primary hover:text-on-primary transition-all">QUICK START</button>
+</div>
+</div>
+<!-- Zone 3: Idle -->
+<div class="bg-surface-container-low p-5 rounded-lg border-l-2 border-outline-variant/30 grayscale hover:grayscale-0 transition-all">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="font-headline font-bold text-sm">VEGETABLE BED</h4>
+<span class="text-[0.625rem] text-outline uppercase tracking-tighter">Zone 03 - IDLE</span>
+</div>
+<span class="material-symbols-outlined text-outline">mode_standby</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-[0.6875rem] text-on-surface-variant">
+<span>Next Run</span>
+<span class="text-on-surface">Tomorrow 05:30</span>
+</div>
+<button class="w-full py-2 bg-primary/10 text-primary text-[0.625rem] font-bold uppercase tracking-widest border border-primary/20 hover:bg-primary hover:text-on-primary transition-all">QUICK START</button>
+</div>
+</div>
+<!-- Zone 4: Active -->
+<div class="bg-surface-container p-5 rounded-lg border-l-2 border-tertiary relative overflow-hidden active-glow">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h4 class="font-headline font-bold text-sm">ORCHARD NORTH</h4>
+<span class="text-[0.625rem] text-tertiary uppercase tracking-tighter">Zone 04 - RUNNING</span>
+</div>
+<span class="material-symbols-outlined text-tertiary animate-pulse" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-[0.6875rem] text-on-surface-variant">
+<span>Remaining Time</span>
+<span class="text-on-surface font-mono">08:45</span>
+</div>
+<button class="w-full py-2 bg-tertiary/10 text-tertiary text-[0.625rem] font-bold uppercase tracking-widest border border-tertiary/20 hover:bg-tertiary hover:text-on-tertiary transition-all">STOP FLOW</button>
+</div>
+</div>
+<!-- Zone 5-7 placeholders (Simplified for compact layout) -->
+<div class="bg-surface-container-low p-5 rounded-lg border-l-2 border-outline-variant/30 flex items-center justify-between">
+<div>
+<h4 class="font-headline font-bold text-xs">05 POOL PERIMETER</h4>
+<span class="text-[0.625rem] text-outline uppercase">Next: Wed 04:00</span>
+</div>
+<button class="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+</div>
+<div class="bg-surface-container-low p-5 rounded-lg border-l-2 border-outline-variant/30 flex items-center justify-between">
+<div>
+<h4 class="font-headline font-bold text-xs">06 FLOWER BORDER</h4>
+<span class="text-[0.625rem] text-outline uppercase">Next: Fri 06:00</span>
+</div>
+<button class="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- 24-Hour Activity Timeline -->
+<div class="bg-surface-container-low rounded-lg p-6 overflow-hidden">
+<div class="flex justify-between items-center mb-8">
+<h4 class="font-headline text-sm font-bold uppercase tracking-widest text-on-surface-variant">24-Hour Activity Feed</h4>
+<span class="text-[0.625rem] text-outline">LIVE FEED REFRESHING...</span>
+</div>
+<div class="relative h-32 w-full flex items-end gap-1">
+<!-- Simulated bar chart activity -->
+<div class="flex-1 bg-surface-container-highest h-[10%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[12%] rounded-t-sm"></div>
+<div class="flex-1 bg-tertiary/40 h-[85%] rounded-t-sm"></div>
+<div class="flex-1 bg-tertiary/40 h-[70%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[15%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[8%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[10%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[12%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-[60%] rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-[90%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[10%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[10%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[5%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[8%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[10%] rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-[12%] rounded-t-sm"></div>
+</div>
+<div class="flex justify-between mt-2 text-[0.625rem] text-outline font-headline font-bold">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>23:59</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Environmental Data & Alerts -->
+<div class="xl:col-span-4 space-y-8">
+<!-- Weather Widget -->
+<div class="bg-surface-container-high rounded-lg p-6 border-b-2 border-secondary-container">
+<div class="flex justify-between items-start mb-8">
+<div>
+<span class="text-[0.625rem] font-headline uppercase tracking-widest text-outline">Station: ALPHA-7</span>
+<div class="text-4xl font-headline font-bold">24°C</div>
+<div class="text-xs text-on-surface-variant">Partly Cloudy | Humidity 42%</div>
+</div>
+<span class="material-symbols-outlined text-4xl text-secondary">partly_cloudy_day</span>
+</div>
+<div class="p-4 bg-secondary-container/10 rounded border border-secondary/20 flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary">rainy</span>
+<div>
+<div class="text-[0.6875rem] font-bold text-secondary uppercase tracking-widest">Rain Delay Active</div>
+<div class="text-[0.625rem] text-on-surface-variant">Skipping next cycle based on precipitation forecast.</div>
+</div>
+</div>
+</div>
+<!-- Soil Sensor Array (Asymmetric layout item) -->
+<div class="glass-panel rounded-lg p-6">
+<h4 class="font-headline text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Soil Moisture Nodes</h4>
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<div class="h-12 w-1 bg-tertiary rounded-full"></div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline">
+<span class="text-xs font-bold uppercase">Node A (North)</span>
+<span class="text-sm font-headline text-tertiary">68%</span>
+</div>
+<div class="text-[0.625rem] text-outline uppercase tracking-tighter">Optimal Saturation</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="h-12 w-1 bg-secondary rounded-full"></div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline">
+<span class="text-xs font-bold uppercase">Node B (West)</span>
+<span class="text-sm font-headline text-secondary">42%</span>
+</div>
+<div class="text-[0.625rem] text-outline uppercase tracking-tighter">Approaching Threshold</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="h-12 w-1 bg-tertiary rounded-full"></div>
+<div class="flex-1">
+<div class="flex justify-between items-baseline">
+<span class="text-xs font-bold uppercase">Node C (Core)</span>
+<span class="text-sm font-headline text-tertiary">71%</span>
+</div>
+<div class="text-[0.625rem] text-outline uppercase tracking-tighter">Optimal Saturation</div>
+</div>
+</div>
+</div>
+</div>
+<!-- System Logs (Quick view) -->
+<div class="space-y-4">
+<h4 class="font-headline text-[0.625rem] font-bold uppercase tracking-[0.2rem] text-outline ml-1">Recent Log entries</h4>
+<div class="bg-surface-container-lowest rounded-lg border border-outline-variant/10 divide-y divide-outline-variant/5">
+<div class="p-3 flex items-start gap-3">
+<span class="text-[0.625rem] font-mono text-outline py-1">14:02</span>
+<div>
+<p class="text-[0.6875rem] text-on-surface font-medium">Zone 04 activated</p>
+<p class="text-[0.625rem] text-outline uppercase">Scheduled Cycle</p>
+</div>
+</div>
+<div class="p-3 flex items-start gap-3">
+<span class="text-[0.625rem] font-mono text-outline py-1">13:45</span>
+<div>
+<p class="text-[0.6875rem] text-on-surface font-medium">Master valve handshake success</p>
+<p class="text-[0.625rem] text-outline uppercase">System check</p>
+</div>
+</div>
+<div class="p-3 flex items-start gap-3">
+<span class="text-[0.625rem] font-mono text-outline py-1">12:30</span>
+<div>
+<p class="text-[0.6875rem] text-secondary font-medium">Rain delay engaged</p>
+<p class="text-[0.625rem] text-outline uppercase">Weather service trigger</p>
+</div>
+</div>
+</div>
+<button class="w-full text-center text-[0.625rem] font-bold text-primary uppercase tracking-[0.15rem] py-2 hover:bg-primary/5 rounded transition-all">View All Diagnostic Logs</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Navigation (Responsive Pivot) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#131313] border-t border-outline-variant/15 flex justify-around items-center h-16 z-50">
+<button class="flex flex-col items-center text-[#00d1ff]">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[0.625rem] font-headline">Status</span>
+</button>
+<button class="flex flex-col items-center text-[#888888]">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-[0.625rem] font-headline">Schedule</span>
+</button>
+<button class="flex flex-col items-center text-[#888888]">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[0.625rem] font-headline">Logs</span>
+</button>
+<button class="flex flex-col items-center text-[#888888]">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[0.625rem] font-headline">Setup</span>
+</button>
+</nav>
+</body></html>

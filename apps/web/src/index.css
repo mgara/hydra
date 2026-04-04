@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #353534 #131313;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #131313;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #353534;
+    border-radius: 3px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Material Symbols config */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  .icon-filled {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+@layer components {
+  /* Glass panel effect */
+  .glass {
+    background: rgba(57, 57, 57, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Subtle etched border (never solid) */
+  .border-etched {
+    border: 1px solid rgba(60, 73, 78, 0.15);
+  }
+
+  /* Power bar — left accent on active cards */
+  .power-bar-cyan {
+    border-left: 3px solid #4BF1FF;
+  }
+  .power-bar-amber {
+    border-left: 3px solid #FFB800;
+  }
+  .power-bar-critical {
+    border-left: 3px solid #FFB4AB;
+  }
+}

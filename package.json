@@ -1,0 +1,19 @@
+{
+  "name": "hydra",
+  "version": "3.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:server": "nx dev @hydra/server",
+    "dev:web": "nx dev @hydra/web",
+    "dev": "nx run-many --target=dev --all",
+    "build": "nx run-many --target=build --all",
+    "lint": "nx run-many --target=lint --all",
+    "deploy": "./scripts/deploy.sh"
+  },
+  "devDependencies": {
+    "nx": "^22.6.0"
+  }
+}

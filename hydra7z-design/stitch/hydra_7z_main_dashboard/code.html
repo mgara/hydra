@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HYDRA-7Z | Irrigation Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-container": "#6b4b00",
+              "on-tertiary": "#00363a",
+              "outline-variant": "#3c494e",
+              "background": "#131313",
+              "surface-bright": "#393939",
+              "surface-variant": "#353534",
+              "surface-container": "#201f1f",
+              "error": "#ffb4ab",
+              "on-error-container": "#ffdad6",
+              "on-secondary-fixed": "#271900",
+              "on-primary-fixed-variant": "#004e60",
+              "on-tertiary-fixed-variant": "#004f54",
+              "tertiary": "#4bf1ff",
+              "error-container": "#93000a",
+              "surface-dim": "#131313",
+              "inverse-surface": "#e5e2e1",
+              "on-primary-container": "#00566a",
+              "secondary-fixed": "#ffdea8",
+              "on-tertiary-container": "#00585e",
+              "on-surface": "#e5e2e1",
+              "secondary": "#ffdb9d",
+              "surface-container-high": "#2a2a2a",
+              "surface-tint": "#4cd6ff",
+              "on-surface-variant": "#bbc9cf",
+              "surface-container-low": "#1c1b1b",
+              "inverse-primary": "#00677f",
+              "tertiary-fixed": "#7df4ff",
+              "outline": "#859399",
+              "on-tertiary-fixed": "#002022",
+              "surface-container-highest": "#353534",
+              "surface-container-lowest": "#0e0e0e",
+              "on-primary": "#003543",
+              "inverse-on-surface": "#313030",
+              "primary-fixed-dim": "#4cd6ff",
+              "on-background": "#e5e2e1",
+              "tertiary-fixed-dim": "#00dbe9",
+              "primary": "#a4e6ff",
+              "on-error": "#690005",
+              "secondary-container": "#feb700",
+              "on-secondary": "#412d00",
+              "on-secondary-fixed-variant": "#5e4200",
+              "surface": "#131313",
+              "on-primary-fixed": "#001f28",
+              "secondary-fixed-dim": "#ffba20",
+              "primary-container": "#00d1ff",
+              "tertiary-container": "#00d5e2",
+              "primary-fixed": "#b7eaff"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-active {
+            box-shadow: 0 0 15px rgba(0, 209, 255, 0.4);
+        }
+        .breathing {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px #00d1ff); }
+            50% { opacity: 0.5; filter: drop-shadow(0 0 8px #00d1ff); }
+        }
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#131313] dark:bg-[#131313] docked full-width top-0 z-50 shadow-none">
+<div class="bg-gradient-to-b from-[#1c1b1b] to-transparent h-16 absolute inset-0 -z-10"></div>
+<div class="flex justify-between items-center w-full px-6 py-4 max-w-none">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-cyan-400 dark:text-[#a4e6ff]" data-icon="water_drop">water_drop</span>
+<h1 class="font-['Space_Grotesk'] tracking-tight text-2xl font-bold uppercase text-cyan-400 dark:text-[#a4e6ff]">HYDRA-7Z</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary-container breathing"></span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold text-tertiary-container">ONLINE</span>
+</div>
+</div>
+</header>
+<main class="px-6 pt-6 space-y-8 max-w-5xl mx-auto">
+<!-- System Status & Alerts -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Leak Alert -->
+<div class="md:col-span-3 bg-error-container/10 border-l-4 border-error p-4 flex items-center justify-between rounded-r-xl">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-error" data-icon="warning" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div>
+<p class="font-label text-xs uppercase tracking-widest text-error font-bold">SYSTEM ALERT</p>
+<p class="font-body text-on-error-container text-sm">Potential leak detected in Main Feed Line. Check pressure sensors.</p>
+</div>
+</div>
+<button class="text-error font-label text-[10px] uppercase tracking-tighter border border-error/30 px-3 py-1 rounded hover:bg-error/10 transition-colors">DISMISS</button>
+</div>
+<!-- Master Valve & Flow Card -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between aspect-square md:aspect-auto">
+<div>
+<div class="flex justify-between items-start">
+<p class="font-label text-[10px] uppercase tracking-[0.2rem] text-on-surface-variant">Master Valve</p>
+<span class="material-symbols-outlined text-tertiary" data-icon="settings_input_component">settings_input_component</span>
+</div>
+<div class="mt-4">
+<span class="font-headline text-4xl font-bold text-on-surface">OPEN</span>
+<div class="h-1 w-12 bg-tertiary mt-2"></div>
+</div>
+</div>
+<div class="mt-6">
+<p class="font-label text-[10px] uppercase tracking-[0.1rem] text-on-surface-variant mb-1">Pressure Status</p>
+<p class="font-body text-xl text-tertiary font-medium">58.2 PSI</p>
+</div>
+</div>
+<!-- GPM Widget -->
+<div class="bg-surface-container-low rounded-xl p-6 relative overflow-hidden flex flex-col justify-between col-span-1">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div>
+<p class="font-label text-[10px] uppercase tracking-[0.2rem] text-on-surface-variant">Live Flow Rate</p>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="font-headline text-6xl font-bold text-primary">12.4</span>
+<span class="font-label text-sm text-primary-container">GPM</span>
+</div>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<p class="font-label text-[10px] uppercase tracking-[0.1rem] text-on-surface-variant">Daily Total</p>
+<p class="font-body text-lg text-on-surface">1,402 GAL</p>
+</div>
+<span class="material-symbols-outlined text-primary-container text-3xl" data-icon="water_full">water_full</span>
+</div>
+</div>
+<!-- Next Run -->
+<div class="bg-surface-container-low rounded-xl p-6 flex flex-col justify-between">
+<div>
+<p class="font-label text-[10px] uppercase tracking-[0.2rem] text-on-surface-variant">Next Cycle</p>
+<div class="mt-4">
+<span class="font-headline text-3xl font-bold text-secondary">04:12:45</span>
+<p class="font-body text-xs text-on-surface-variant mt-1">Zone 01 - Front Lawn</p>
+</div>
+</div>
+<button class="mt-6 w-full py-3 bg-surface-container-highest font-label text-[10px] uppercase tracking-widest text-on-surface rounded-lg hover:bg-surface-bright transition-all">VIEW SCHEDULE</button>
+</div>
+</section>
+<!-- Irrigation Zones Grid -->
+<section class="space-y-4">
+<div class="flex justify-between items-end px-2">
+<h2 class="font-headline text-xl font-bold tracking-tight text-on-surface uppercase">Active Zones &amp; Control</h2>
+<p class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">7 Channels Active</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Zone 1: Running -->
+<div class="bg-surface-container-highest/40 backdrop-blur-md rounded-xl p-5 border-l-4 border-tertiary relative group">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary breathing"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-tertiary font-bold">RUNNING</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-01</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">Front Lawn</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">Ending in 08:22</p>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-error/20 text-error font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-error/30 transition-all">STOP</button>
+</div>
+</div>
+<!-- Zone 2: Idle -->
+<div class="bg-surface-container-low rounded-xl p-5 border-l-4 border-outline-variant relative">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">IDLE</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-02</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">Flower Beds</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">Last run: 4h ago</p>
+<button class="w-full py-2 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-primary/20 transition-all">QUICK RUN</button>
+</div>
+<!-- Zone 3: Scheduled -->
+<div class="bg-surface-container-low rounded-xl p-5 border-l-4 border-secondary-container relative">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-secondary-container">SCHEDULED</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-03</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">Back Terrace</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">Starts at 04:30 AM</p>
+<button class="w-full py-2 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-primary/20 transition-all">MANUAL</button>
+</div>
+<!-- Zone 4: Idle -->
+<div class="bg-surface-container-low rounded-xl p-5 border-l-4 border-outline-variant relative">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">IDLE</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-04</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">Side Path</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">Manual mode only</p>
+<button class="w-full py-2 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-primary/20 transition-all">QUICK RUN</button>
+</div>
+<!-- Zone 5: Idle -->
+<div class="bg-surface-container-low rounded-xl p-5 border-l-4 border-outline-variant relative">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">IDLE</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-05</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">Vegetable Patch</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">Last run: Yesterday</p>
+<button class="w-full py-2 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-primary/20 transition-all">QUICK RUN</button>
+</div>
+<!-- Zone 6: Idle -->
+<div class="bg-surface-container-low rounded-xl p-5 border-l-4 border-outline-variant relative">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">IDLE</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-06</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">North Hedge</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">Drip irrigation</p>
+<button class="w-full py-2 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-primary/20 transition-all">QUICK RUN</button>
+</div>
+<!-- Zone 7: Idle -->
+<div class="bg-surface-container-low rounded-xl p-5 border-l-4 border-outline-variant relative">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">IDLE</p>
+</div>
+<p class="font-label text-[10px] text-on-surface-variant">CH-07</p>
+</div>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-1">Potted Deck</h3>
+<p class="font-body text-xs text-on-surface-variant mb-6">High priority zone</p>
+<button class="w-full py-2 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-widest rounded-lg hover:bg-primary/20 transition-all">QUICK RUN</button>
+</div>
+<!-- Add New Zone Placeholder -->
+<div class="border-2 border-dashed border-outline-variant/30 rounded-xl p-5 flex flex-col items-center justify-center min-h-[160px] opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-4xl mb-2" data-icon="add_circle">add_circle</span>
+<p class="font-label text-[10px] uppercase tracking-widest">Expansion Slot</p>
+</div>
+</div>
+</section>
+<!-- Weather Context Card -->
+<section class="bg-surface-container-lowest border border-outline-variant/15 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-8">
+<div class="flex-shrink-0">
+<img alt="Storm clouds" class="w-24 h-24 rounded-full object-cover border-4 border-surface-variant" data-alt="Stormy grey clouds in a dark sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0Jr8Cmfo5MYlqUvnVDqaRfB4nrU27z3Raasu-Gqu4Z9JZMh9KbcYbNTq6-JP_NO1vLAlx5bKNlf4pWubWohbW1HDB9sIxQn0VkG7C5muv6TX3DTnDI4oa9wIEESH4CkZ9Gz0nfPc-o0QmwiHEuU9Esf7s4nDrvu6iYPc0L-18rBtilx6mZU3WgSMnj_d7NSsUYMM245tSkIY-OpvqYbP9jWicTmJTAW9p9FtWA3W_9qk6xzsRDsYF_Ebeul1i9rLBzTAl4YU3eVs"/>
+</div>
+<div class="text-center md:text-left flex-1">
+<h3 class="font-headline text-2xl font-bold text-on-surface">Rain Delay Active</h3>
+<p class="font-body text-on-surface-variant mt-2 max-w-md">Local station reports 85% chance of precipitation. Smart Delay has paused all non-priority schedules for 24 hours.</p>
+</div>
+<div class="flex flex-col items-center md:items-end">
+<p class="font-headline text-4xl font-light text-primary">72°F</p>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">High Humidity</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 bg-[#131313]/90 backdrop-blur-xl dark:bg-[#131313]/90 z-50 h-20 border-t border-[#3c494e]/15 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+<a class="flex flex-col items-center justify-center text-[#00d1ff] bg-[#00d1ff]/10 rounded-xl px-4 py-1.5 animate-pulse" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Schedule</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Settings</span>
+</a>
+</nav>
+</body></html>

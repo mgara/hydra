@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HYDRA-7Z | Zone Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-container": "#6b4b00",
+                        "on-tertiary": "#00363a",
+                        "outline-variant": "#3c494e",
+                        "background": "#131313",
+                        "surface-bright": "#393939",
+                        "surface-variant": "#353534",
+                        "surface-container": "#201f1f",
+                        "error": "#ffb4ab",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed": "#271900",
+                        "on-primary-fixed-variant": "#004e60",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "tertiary": "#4bf1ff",
+                        "error-container": "#93000a",
+                        "surface-dim": "#131313",
+                        "inverse-surface": "#e5e2e1",
+                        "on-primary-container": "#00566a",
+                        "secondary-fixed": "#ffdea8",
+                        "on-tertiary-container": "#00585e",
+                        "on-surface": "#e5e2e1",
+                        "secondary": "#ffdb9d",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-tint": "#4cd6ff",
+                        "on-surface-variant": "#bbc9cf",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-primary": "#00677f",
+                        "tertiary-fixed": "#7df4ff",
+                        "outline": "#859399",
+                        "on-tertiary-fixed": "#002022",
+                        "surface-container-highest": "#353534",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-primary": "#003543",
+                        "inverse-on-surface": "#313030",
+                        "primary-fixed-dim": "#4cd6ff",
+                        "on-background": "#e5e2e1",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "primary": "#a4e6ff",
+                        "on-error": "#690005",
+                        "secondary-container": "#feb700",
+                        "on-secondary": "#412d00",
+                        "on-secondary-fixed-variant": "#5e4200",
+                        "surface": "#131313",
+                        "on-primary-fixed": "#001f28",
+                        "secondary-fixed-dim": "#ffba20",
+                        "primary-container": "#00d1ff",
+                        "tertiary-container": "#00d5e2",
+                        "primary-fixed": "#b7eaff"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-primary {
+            box-shadow: 0 0 15px rgba(0, 209, 255, 0.2);
+        }
+        .glass-panel {
+            background: rgba(32, 31, 31, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .scada-grid {
+            background-image: radial-gradient(circle at 1px 1px, #3c494e 1px, transparent 0);
+            background-size: 24px 24px;
+            background-position: center;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen pb-24">
+<!-- Top Navigation -->
+<header class="fixed top-0 left-0 w-full z-50 bg-[#131313] flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#a4e6ff] text-2xl">water_drop</span>
+<h1 class="font-headline tracking-tight text-2xl font-bold uppercase text-[#a4e6ff]">HYDRA-7Z</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-[10px] font-headline tracking-widest text-[#a4e6ff] font-bold">ONLINE</span>
+</div>
+<button class="material-symbols-outlined text-zinc-500 hover:text-primary transition-colors">notifications</button>
+</div>
+<!-- Style Separation Logic -->
+<div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent"></div>
+</header>
+<main class="pt-24 px-6 max-w-7xl mx-auto scada-grid">
+<!-- Breadcrumb / Header Section -->
+<div class="mb-12">
+<div class="flex items-center gap-2 mb-2">
+<span class="text-xs font-label uppercase tracking-[0.2rem] text-outline">System / Zones</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline text-5xl font-bold text-on-surface leading-tight">Zone 1: Front Lawn</h2>
+<p class="text-primary/70 font-label tracking-wide uppercase text-sm mt-1">Status: Operational • Standby</p>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-end">
+<span class="text-[10px] font-label text-outline uppercase tracking-widest">Next Run</span>
+<span class="text-lg font-headline font-semibold">05:30 AM</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Real-time Telemetry (Left Stack) -->
+<div class="md:col-span-4 space-y-6">
+<!-- Pressure -->
+<div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary group-hover:h-1/2 transition-all duration-500"></div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest block mb-4">Line Pressure</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold">42.8</span>
+<span class="text-primary font-headline text-lg">PSI</span>
+</div>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[65%]"></div>
+</div>
+</div>
+<!-- Flow Rate -->
+<div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary group-hover:h-1/2 transition-all duration-500"></div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest block mb-4">Flow Rate</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold">12.5</span>
+<span class="text-tertiary font-headline text-lg">GPM</span>
+</div>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[40%]"></div>
+</div>
+</div>
+<!-- Soil Moisture -->
+<div class="bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary group-hover:h-1/2 transition-all duration-500"></div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest block mb-4">Soil Moisture</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-bold">34</span>
+<span class="text-secondary font-headline text-lg">%</span>
+</div>
+<div class="mt-4 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[34%]"></div>
+</div>
+</div>
+</div>
+<!-- Visualization Center (Main Content) -->
+<div class="md:col-span-8 space-y-6">
+<!-- History Graph Area -->
+<div class="bg-surface-container p-6 rounded-xl aspect-[16/9] flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline text-lg font-bold uppercase tracking-tight">Environmental Dynamics</h3>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-highest rounded-md text-[10px] font-bold text-primary border border-primary/20">MOISTURE %</span>
+<span class="px-3 py-1 bg-surface-container-highest rounded-md text-[10px] font-bold text-tertiary/60">FLOW GPM</span>
+</div>
+</div>
+<div class="flex-grow flex items-end justify-between gap-1">
+<!-- Simulated Bar Chart -->
+<div class="w-full bg-primary/10 h-[30%] rounded-t-sm relative group hover:bg-primary/30 transition-all">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 text-[10px] text-primary">28%</div>
+</div>
+<div class="w-full bg-primary/10 h-[35%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/10 h-[45%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/10 h-[42%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/10 h-[55%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/20 h-[65%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/20 h-[60%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/40 h-[75%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/60 h-[85%] rounded-t-sm relative group hover:bg-primary/30 transition-all">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 opacity-100 text-[10px] text-primary font-bold">ACTIVE</div>
+</div>
+<div class="w-full bg-primary/30 h-[50%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/20 h-[40%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+<div class="w-full bg-primary/10 h-[32%] rounded-t-sm relative group hover:bg-primary/30 transition-all"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] font-label text-outline uppercase tracking-widest">
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>00:00</span>
+</div>
+</div>
+<!-- Manual Override Slider -->
+<div class="glass-panel p-2 rounded-2xl flex items-center justify-between border border-outline-variant/10">
+<div class="flex-1 px-6">
+<span class="text-[10px] font-label text-outline uppercase tracking-[0.2rem]">Manual Override</span>
+<h4 class="font-headline font-bold text-lg">READY FOR DEPLOYMENT</h4>
+</div>
+<div class="relative bg-surface-container-lowest w-64 h-16 rounded-xl flex items-center px-2 group cursor-pointer overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent"></div>
+<div class="z-10 bg-primary h-12 w-12 rounded-lg flex items-center justify-center text-on-primary shadow-lg shadow-primary/20 group-hover:translate-x-48 transition-transform duration-500 ease-in-out">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+<span class="absolute left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary/50 tracking-[0.3rem] pointer-events-none">SLIDE TO START</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Schedule Editor Section -->
+<div class="mt-12 mb-24">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline text-3xl font-bold">Operational Schedule</h3>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-lg font-bold text-sm hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    NEW WINDOW
+                </button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Schedule Card 1 -->
+<div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest block">Morning Refresh</span>
+<span class="font-headline text-2xl font-bold">05:30 AM</span>
+</div>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">edit</button>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors">delete</button>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-outline">Duration</span>
+<span class="font-mono text-primary">15:00 min</span>
+</div>
+<div class="flex gap-1.5">
+<span class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-[10px] font-bold">M</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">T</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-[10px] font-bold">W</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">T</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-[10px] font-bold">F</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">S</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">S</span>
+</div>
+</div>
+</div>
+<!-- Schedule Card 2 -->
+<div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-outline-variant/30 opacity-60 grayscale">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest block">Evening Soak</span>
+<span class="font-headline text-2xl font-bold">08:00 PM</span>
+</div>
+<div class="flex gap-2">
+<button class="material-symbols-outlined text-outline hover:text-primary transition-colors">edit</button>
+<button class="material-symbols-outlined text-outline hover:text-error transition-colors">delete</button>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-outline">Duration</span>
+<span class="font-mono">10:00 min</span>
+</div>
+<div class="flex gap-1.5">
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">M</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">T</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">W</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">T</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">F</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">S</span>
+<span class="w-8 h-8 flex items-center justify-center rounded bg-surface-container-highest text-outline text-[10px] font-bold">S</span>
+</div>
+<span class="text-[9px] uppercase font-bold text-outline-variant">DISABLED BY USER</span>
+</div>
+</div>
+<!-- Rain Skip / Weather Integration -->
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant/15 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-headline font-bold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">cloud_sync</span>
+                                RAIN SKIP
+                            </h4>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-variant rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<p class="text-xs text-outline leading-relaxed mb-4">
+                            System will automatically skip next run if precipitation probability exceeds <span class="text-secondary font-bold">40%</span>.
+                        </p>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant/5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-xl">cloud</span>
+<div>
+<span class="block text-[10px] font-bold text-outline">FORECAST</span>
+<span class="text-xs font-bold uppercase">Light Rain (15%)</span>
+</div>
+</div>
+<span class="text-[10px] font-label text-tertiary">SYNCED</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 h-20 bg-[#131313]/90 backdrop-blur-xl flex justify-around items-center px-4 pb-4 border-t border-[#3c494e]/15">
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#00d1ff] bg-[#00d1ff]/10 rounded-xl px-4 py-1.5 animate-pulse" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="font-label text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Schedule</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 transition-all" href="#">
+<span class="material-symbols-outlined">warning</span>
+<span class="font-label text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label text-[10px] uppercase tracking-[0.1rem] font-semibold mt-1">Settings</span>
+</a>
+</nav>
+<!-- Mobile Navigation Shell Logic (Visual Tweak) -->
+<div class="fixed bottom-0 left-0 w-full h-20 pointer-events-none shadow-[0_-4px_20px_rgba(0,0,0,0.5)] z-40"></div>
+</body></html>

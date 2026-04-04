@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HYDRA-7Z | Zone Detail &amp; Schedule</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#5e4200",
+              "tertiary-container": "#00d5e2",
+              "primary": "#a4e6ff",
+              "error-container": "#93000a",
+              "primary-container": "#00d1ff",
+              "on-error": "#690005",
+              "tertiary": "#4bf1ff",
+              "on-primary": "#003543",
+              "on-primary-fixed-variant": "#004e60",
+              "secondary-fixed-dim": "#ffba20",
+              "on-primary-container": "#00566a",
+              "secondary": "#ffdb9d",
+              "primary-fixed": "#b7eaff",
+              "on-secondary-fixed": "#271900",
+              "on-background": "#e5e2e1",
+              "on-tertiary-container": "#00585e",
+              "inverse-on-surface": "#313030",
+              "on-surface": "#e5e2e1",
+              "surface-container-highest": "#353534",
+              "on-surface-variant": "#bbc9cf",
+              "background": "#131313",
+              "surface-container-lowest": "#0e0e0e",
+              "surface-bright": "#393939",
+              "surface": "#131313",
+              "inverse-surface": "#e5e2e1",
+              "outline": "#859399",
+              "inverse-primary": "#00677f",
+              "secondary-fixed": "#ffdea8",
+              "on-error-container": "#ffdad6",
+              "tertiary-fixed": "#7df4ff",
+              "error": "#ffb4ab",
+              "surface-container": "#201f1f",
+              "surface-tint": "#4cd6ff",
+              "surface-dim": "#131313",
+              "on-tertiary": "#00363a",
+              "secondary-container": "#feb700",
+              "on-tertiary-fixed-variant": "#004f54",
+              "on-tertiary-fixed": "#002022",
+              "on-primary-fixed": "#001f28",
+              "tertiary-fixed-dim": "#00dbe9",
+              "outline-variant": "#3c494e",
+              "surface-container-low": "#1c1b1b",
+              "surface-variant": "#353534",
+              "surface-container-high": "#2a2a2a",
+              "primary-fixed-dim": "#4cd6ff",
+              "on-secondary-container": "#6b4b00",
+              "on-secondary": "#412d00"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .glass-panel {
+            background: rgba(28, 27, 27, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .active-glow {
+            box-shadow: 0 0 20px rgba(164, 230, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen overflow-hidden">
+<!-- TopNavBar -->
+<nav class="bg-[#131313] dark:bg-[#131313] docked full-width top-0 z-50 flex justify-between items-center px-8 h-16 w-full border-b border-[#3c494e]/15 fixed">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#a4e6ff]">HYDRA-7Z</span>
+<div class="hidden md:flex gap-6 items-center">
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-[#a4e6ff]">System Status: NOMINAL</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-[#a4e6ff]">Active Flow: 4.2L/s</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#444444] hover:bg-[#1c1b1b] transition-colors duration-300 p-2 rounded">notifications</button>
+<button class="material-symbols-outlined text-[#444444] hover:bg-[#1c1b1b] transition-colors duration-300 p-2 rounded">settings_input_component</button>
+<img class="w-8 h-8 rounded-full border border-outline-variant/30" data-alt="Technical operator profile portrait in dark lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8-THiun37Cv11nRIqHqyndHzwK8kYHrll0aj__jGKwpNUpqz5jqVkirKkFH4iL-3kxjER9RBPoYIh7vDpkvqsPDvmKPBTxvoAX3ERCVXywF7pkwOuhIegmRqajVxPzrUR4fNFhM5EceQfxWfrDdCQ4R-ikwUGSMmw8ND4SLxJTWJ4UoDKnNnDZANp2jjhP3zQ0hO1PrrZfAjWCq12-ZhI-v1yLdwqkHALw0kw41Vk7krBg4ioJZvmuK8tjmnl1ilu6qKL1jlpjKE"/>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#131313] dark:bg-[#131313] flex flex-col border-r border-[#3c494e]/15 pt-20 pb-8 px-4 z-40">
+<div class="mb-8 px-2">
+<div class="text-lg font-black text-[#a4e6ff] mb-2">HYDRA-7Z</div>
+<div class="font-['Space_Grotesk'] text-xs tracking-widest text-[#888888] uppercase">OPERATOR UNIT 01</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide group" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#00d1ff] border-l-2 border-[#4bf1ff] bg-[#00d1ff]/10 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+                Schedule
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">analytics</span>
+                Logs
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">warning</span>
+                Alerts
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all hover:translate-x-1 duration-200 font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="mt-auto pt-8 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+                Support
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all font-['Space_Grotesk'] text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span>
+                Diagnostic
+            </a>
+<button class="w-full mt-4 py-3 bg-error-container/20 text-error border border-error/30 font-['Space_Grotesk'] text-[0.6875rem] font-bold tracking-[0.2rem] uppercase hover:bg-error-container/40 transition-colors">
+                FORCE SHUTDOWN
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-16 h-screen overflow-hidden flex flex-col">
+<!-- Header Section -->
+<header class="p-8 pb-4 flex justify-between items-end">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<span class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_#4bf1ff]"></span>
+<span class="font-label text-[0.6875rem] uppercase tracking-[0.15rem] text-on-surface-variant">Zone 04 • Sector North-West</span>
+</div>
+<h1 class="font-headline text-5xl font-bold tracking-tighter text-on-surface">Precision Hydration</h1>
+</div>
+<div class="flex gap-4 items-center h-fit">
+<div class="text-right">
+<div class="text-[0.6rem] uppercase tracking-widest text-outline">Ambient Humidity</div>
+<div class="font-headline text-2xl font-light text-primary">64%</div>
+</div>
+<div class="w-px h-10 bg-outline-variant/20 mx-2"></div>
+<div class="text-right">
+<div class="text-[0.6rem] uppercase tracking-widest text-outline">External Temp</div>
+<div class="font-headline text-2xl font-light text-secondary">28.4°C</div>
+</div>
+</div>
+</header>
+<!-- Dynamic Layout Grid -->
+<div class="flex-1 grid grid-cols-12 gap-6 p-8 overflow-hidden">
+<!-- Left Side: Live Metrics -->
+<section class="col-span-12 lg:col-span-7 flex flex-col gap-6 overflow-hidden">
+<!-- Main Metric Bento -->
+<div class="grid grid-cols-3 gap-6">
+<!-- Moisture -->
+<div class="bg-surface-container-low p-6 rounded-lg border-l-2 border-tertiary active-glow flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-tertiary mb-2">water_drop</span>
+<div class="font-label text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Moisture Level</div>
+</div>
+<div class="mt-4">
+<div class="font-headline text-5xl font-bold tracking-tight text-on-surface">42.8<span class="text-lg font-normal ml-1 text-outline-variant">%</span></div>
+<div class="text-[0.6875rem] text-tertiary font-medium flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-xs">trending_up</span> Optimal Range
+                            </div>
+</div>
+</div>
+<!-- Flow -->
+<div class="bg-surface-container-low p-6 rounded-lg border-l-2 border-primary active-glow flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-primary mb-2">speed</span>
+<div class="font-label text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Flow Velocity</div>
+</div>
+<div class="mt-4">
+<div class="font-headline text-5xl font-bold tracking-tight text-on-surface">1.4<span class="text-lg font-normal ml-1 text-outline-variant">L/s</span></div>
+<div class="text-[0.6875rem] text-primary font-medium flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-xs">check_circle</span> Pulse Nominal
+                            </div>
+</div>
+</div>
+<!-- Pressure -->
+<div class="bg-surface-container-low p-6 rounded-lg border-l-2 border-secondary-container active-glow flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-secondary-container mb-2">compress</span>
+<div class="font-label text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Line Pressure</div>
+</div>
+<div class="mt-4">
+<div class="font-headline text-5xl font-bold tracking-tight text-on-surface">3.2<span class="text-lg font-normal ml-1 text-outline-variant">bar</span></div>
+<div class="text-[0.6875rem] text-secondary font-medium flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-xs">warning</span> Peak Threshold
+                            </div>
+</div>
+</div>
+</div>
+<!-- Historical Graph Section -->
+<div class="flex-1 bg-surface-container-low rounded-lg p-6 relative overflow-hidden flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<div class="font-label text-xs uppercase tracking-[0.2rem] font-bold text-on-surface-variant">Moisture Trend (24H)</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-surface-container-highest text-[0.6rem] font-bold text-on-surface rounded">HOUR</button>
+<button class="px-3 py-1 text-[0.6rem] font-bold text-outline hover:text-on-surface transition-colors">DAY</button>
+<button class="px-3 py-1 text-[0.6rem] font-bold text-outline hover:text-on-surface transition-colors">WEEK</button>
+</div>
+</div>
+<div class="flex-1 w-full relative group">
+<!-- Simulated SVG Graph -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<defs>
+<lineargradient id="lineGrad" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:var(--tertiary);stop-opacity:0.3"></stop>
+<stop offset="100%" style="stop-color:var(--tertiary);stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 80 Q 10 75, 20 60 T 40 50 T 60 70 T 80 40 T 100 30 V 100 H 0 Z" fill="url(#lineGrad)"></path>
+<path d="M0 80 Q 10 75, 20 60 T 40 50 T 60 70 T 80 40 T 100 30" fill="none" stroke="#4bf1ff" stroke-width="2"></path>
+<!-- Grid Lines -->
+<line stroke="#3c494e" stroke-dasharray="1" stroke-width="0.1" x1="0" x2="100" y1="20" y2="20"></line>
+<line stroke="#3c494e" stroke-dasharray="1" stroke-width="0.1" x1="0" x2="100" y1="50" y2="50"></line>
+<line stroke="#3c494e" stroke-dasharray="1" stroke-width="0.1" x1="0" x2="100" y1="80" y2="80"></line>
+</svg>
+<!-- Floating Tooltip -->
+<div class="absolute left-[80%] top-[40%] bg-surface-bright p-2 border border-outline-variant/30 rounded shadow-xl">
+<div class="text-[0.6rem] text-outline uppercase mb-1">Current State</div>
+<div class="font-headline font-bold text-primary">58.2%</div>
+</div>
+</div>
+<div class="mt-4 grid grid-cols-6 text-[0.6rem] uppercase tracking-widest text-outline font-medium border-t border-outline-variant/10 pt-4">
+<span>06:00</span>
+<span>10:00</span>
+<span>14:00</span>
+<span>18:00</span>
+<span>22:00</span>
+<span class="text-right">02:00</span>
+</div>
+</div>
+</section>
+<!-- Right Side: Schedule Editor -->
+<section class="col-span-12 lg:col-span-5 bg-surface-container-low rounded-lg border border-outline-variant/10 flex flex-col overflow-hidden">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+<div>
+<h2 class="font-headline text-xl font-bold text-on-surface">Schedule Matrix</h2>
+<p class="text-[0.6875rem] text-on-surface-variant font-body">Define operational windows and cycles</p>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-md font-['Space_Grotesk'] text-[0.6875rem] font-bold tracking-wider hover:shadow-[0_0_15px_rgba(164,230,255,0.4)] transition-all">
+                        SAVE CONFIG
+                    </button>
+</div>
+<div class="flex-1 p-6 overflow-y-auto hide-scrollbar space-y-8">
+<!-- Day Picker -->
+<div>
+<label class="font-label text-[0.6rem] uppercase tracking-[0.15rem] text-outline mb-4 block">Active Operating Days</label>
+<div class="flex justify-between">
+<button class="w-10 h-10 rounded-full border border-primary bg-primary/10 text-primary font-headline font-bold text-xs flex items-center justify-center">M</button>
+<button class="w-10 h-10 rounded-full border border-primary bg-primary/10 text-primary font-headline font-bold text-xs flex items-center justify-center">T</button>
+<button class="w-10 h-10 rounded-full border border-outline-variant/30 text-outline font-headline font-bold text-xs flex items-center justify-center hover:border-outline transition-colors">W</button>
+<button class="w-10 h-10 rounded-full border border-primary bg-primary/10 text-primary font-headline font-bold text-xs flex items-center justify-center">T</button>
+<button class="w-10 h-10 rounded-full border border-outline-variant/30 text-outline font-headline font-bold text-xs flex items-center justify-center hover:border-outline transition-colors">F</button>
+<button class="w-10 h-10 rounded-full border border-secondary bg-secondary/10 text-secondary font-headline font-bold text-xs flex items-center justify-center">S</button>
+<button class="w-10 h-10 rounded-full border border-secondary bg-secondary/10 text-secondary font-headline font-bold text-xs flex items-center justify-center">S</button>
+</div>
+</div>
+<!-- Time Slots -->
+<div class="space-y-4">
+<label class="font-label text-[0.6rem] uppercase tracking-[0.15rem] text-outline block">Configured Windows</label>
+<!-- Window 1 -->
+<div class="bg-surface-container-high p-4 rounded-lg relative border-l-4 border-tertiary">
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="text-[0.6rem] uppercase tracking-widest text-tertiary font-bold mb-1">Slot A - Morning Surge</div>
+<div class="font-headline text-lg text-on-surface">06:00 <span class="text-xs text-outline mx-2">to</span> 08:30</div>
+</div>
+<button class="material-symbols-outlined text-outline-variant hover:text-error transition-colors">delete</button>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[0.6rem] font-bold text-outline-variant">
+<span>INTENSITY</span>
+<span class="text-tertiary">85%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[85%]"></div>
+</div>
+</div>
+</div>
+<!-- Window 2 -->
+<div class="bg-surface-container-high p-4 rounded-lg relative border-l-4 border-primary/50">
+<div class="flex justify-between items-start mb-4">
+<div>
+<div class="text-[0.6rem] uppercase tracking-widest text-outline font-bold mb-1">Slot B - Maintenance</div>
+<div class="font-headline text-lg text-on-surface">12:00 <span class="text-xs text-outline mx-2">to</span> 12:45</div>
+</div>
+<button class="material-symbols-outlined text-outline-variant hover:text-error transition-colors">delete</button>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[0.6rem] font-bold text-outline-variant">
+<span>INTENSITY</span>
+<span class="text-primary">40%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[40%]"></div>
+</div>
+</div>
+</div>
+<button class="w-full py-4 border-2 border-dashed border-outline-variant/30 rounded-lg flex flex-col items-center justify-center group hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">add_circle</span>
+<span class="text-[0.6rem] uppercase tracking-[0.2rem] font-bold text-outline mt-2">Append Window</span>
+</button>
+</div>
+<!-- Slide Override -->
+<div class="pt-8">
+<div class="bg-surface-container-lowest p-2 rounded-full border border-outline-variant/10 flex items-center relative group overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-0 bg-primary/20 transition-all group-active:w-full"></div>
+<div class="z-10 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center cursor-pointer shadow-lg active:translate-x-[calc(100%*3.5)] transition-transform duration-500 ease-in-out">
+<span class="material-symbols-outlined">double_arrow</span>
+</div>
+<span class="flex-1 text-center font-['Space_Grotesk'] text-[0.6rem] font-black uppercase tracking-[0.3rem] text-outline group-hover:text-on-surface transition-colors">
+                                SLIDE TO OVERRIDE (ACTIVE)
+                            </span>
+</div>
+</div>
+</div>
+<!-- Status Footer -->
+<div class="p-6 bg-surface-container-highest/30 border-t border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 bg-tertiary rounded-full animate-pulse shadow-[0_0_10px_#4bf1ff]"></div>
+<span class="text-[0.6rem] font-bold uppercase tracking-widest text-on-surface">Local Control Enabled</span>
+</div>
+<span class="text-[0.6rem] font-medium text-outline">AUTO SYNC: 24s ago</span>
+</div>
+</section>
+</div>
+</main>
+<!-- Visual Embellishments -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+<div class="absolute top-1/4 -left-1/4 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-tertiary/5 blur-[120px] rounded-full"></div>
+</div>
+</body></html>

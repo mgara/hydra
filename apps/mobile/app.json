@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Hydra",
+    "slug": "hydra",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "hydra",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#131313"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hydra.irrigation",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "Hydra uses Bluetooth to discover and configure your irrigation controller.",
+        "NSLocalNetworkUsageDescription": "Hydra uses local network to communicate with your irrigation controller."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#131313"
+      },
+      "package": "com.hydra.irrigation",
+      "permissions": [
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN",
+        "BLUETOOTH_CONNECT",
+        "BLUETOOTH_SCAN",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "root": "./src/app"
+        }
+      ]
+    ]
+  }
+}

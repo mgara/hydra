@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed-variant": "#5e4200",
+                        "tertiary-container": "#00d5e2",
+                        "primary": "#a4e6ff",
+                        "error-container": "#93000a",
+                        "primary-container": "#00d1ff",
+                        "on-error": "#690005",
+                        "tertiary": "#4bf1ff",
+                        "on-primary": "#003543",
+                        "on-primary-fixed-variant": "#004e60",
+                        "secondary-fixed-dim": "#ffba20",
+                        "on-primary-container": "#00566a",
+                        "secondary": "#ffdb9d",
+                        "primary-fixed": "#b7eaff",
+                        "on-secondary-fixed": "#271900",
+                        "on-background": "#e5e2e1",
+                        "on-tertiary-container": "#00585e",
+                        "inverse-on-surface": "#313030",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-highest": "#353534",
+                        "on-surface-variant": "#bbc9cf",
+                        "background": "#131313",
+                        "surface-container-lowest": "#0e0e0e",
+                        "surface-bright": "#393939",
+                        "surface": "#131313",
+                        "inverse-surface": "#e5e2e1",
+                        "outline": "#859399",
+                        "inverse-primary": "#00677f",
+                        "secondary-fixed": "#ffdea8",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#7df4ff",
+                        "error": "#ffb4ab",
+                        "surface-container": "#201f1f",
+                        "surface-tint": "#4cd6ff",
+                        "surface-dim": "#131313",
+                        "on-tertiary": "#00363a",
+                        "secondary-container": "#feb700",
+                        "on-tertiary-fixed-variant": "#004f54",
+                        "on-tertiary-fixed": "#002022",
+                        "on-primary-fixed": "#001f28",
+                        "tertiary-fixed-dim": "#00dbe9",
+                        "outline-variant": "#3c494e",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-variant": "#353534",
+                        "surface-container-high": "#2a2a2a",
+                        "primary-fixed-dim": "#4cd6ff",
+                        "on-secondary-container": "#6b4b00",
+                        "on-secondary": "#412d00"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scada-grid {
+            background-size: 40px 40px;
+            background-image: radial-gradient(circle, #3c494e 1px, transparent 1px);
+            background-position: center;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(28, 27, 27, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar Component -->
+<header class="bg-[#131313] dark:bg-[#131313] docked full-width top-0 z-50 flex justify-between items-center px-8 h-16 w-full border-b border-[#3c494e]/15">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#a4e6ff]">HYDRA-7Z</span>
+<nav class="hidden md:flex gap-6">
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-[#444444]">System Status: NOMINAL</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-[#444444]">Active Flow: 4.2L/s</span>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#a4e6ff] hover:bg-[#1c1b1b] transition-colors duration-300 rounded-lg">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#a4e6ff] hover:bg-[#1c1b1b] transition-colors duration-300 rounded-lg">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="Operator Profile" class="w-full h-full object-cover" data-alt="Close up portrait of a technical operator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPOBnkeTJItV6cHqGnDqyaTZCwNl_3HIbEI2gphhOAzf8b6uf3otUnFtLq1U2J6BUcw_D9CYNQtnRFucGSk0fuX8VqBNzrwUKK0qsi34qjdgOfTcm2lh8ITpN1xdWe88c9qbQ-zu-JrgZqRBbWd43yV2fAK7DcQuQR32PEY1EcAYZcsJO_7gb3e-Bq-p9LGFP_OEmcnNZTR3sbSvabuHrGKhvdtGHoeDorZFZic3Xt3EEysrqmor9H0Z67VlhypRXSStI2dcAet2s"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#131313] dark:bg-[#131313] flex flex-col border-r border-[#3c494e]/15 pt-20 pb-8 px-4 z-40">
+<div class="mb-8 px-2">
+<h2 class="text-lg font-black text-[#a4e6ff] mb-2">HYDRA-7Z</h2>
+<p class="font-['Space_Grotesk'] text-xs tracking-widest text-on-surface-variant uppercase">OPERATOR UNIT 01</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg font-['Space_Grotesk'] text-sm tracking-wide text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg font-['Space_Grotesk'] text-sm tracking-wide text-[#00d1ff] border-l-2 border-[#4bf1ff] bg-[#00d1ff]/10 group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">calendar_today</span>
+<span>Schedule</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg font-['Space_Grotesk'] text-sm tracking-wide text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">analytics</span>
+<span>Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg font-['Space_Grotesk'] text-sm tracking-wide text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">warning</span>
+<span>Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg font-['Space_Grotesk'] text-sm tracking-wide text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4">
+<div class="pt-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white text-sm" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white text-sm" href="#">
+<span class="material-symbols-outlined text-sm">terminal</span>
+<span>Diagnostic</span>
+</a>
+</div>
+<button class="w-full py-3 bg-error-container/20 text-error border border-error/30 rounded-lg text-xs font-bold tracking-widest hover:bg-error-container/40 transition-colors uppercase">
+                FORCE SHUTDOWN
+            </button>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="pl-64 pt-16 min-h-screen bg-background relative overflow-hidden">
+<!-- Atmospheric Background Element -->
+<div class="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] -mr-96 -mt-96 pointer-events-none"></div>
+<div class="p-8 max-w-[1600px] mx-auto relative z-10">
+<!-- Header section with high-end typography -->
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-8">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary text-[10px] font-bold tracking-[0.2em] rounded uppercase">Live Feed</span>
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+</div>
+<h1 class="font-headline text-5xl font-bold tracking-tight text-on-surface">Weekly Dynamics</h1>
+<p class="text-on-surface-variant font-body mt-2 max-w-md">Systematic resource distribution overview and forecasted irrigation skip matrices for the HYDRA-7Z cluster.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container-low px-6 py-4 rounded-xl border border-outline-variant/10 flex items-center gap-4">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Device Status</span>
+<span class="text-primary font-headline font-semibold">SYNCED: 100%</span>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/20"></div>
+<button class="flex items-center gap-2 text-primary hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">sync</span>
+<span class="text-xs font-bold uppercase tracking-tighter">Sync Now</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Dashboard Control Strip -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+<div class="lg:col-span-3 glass-panel p-6 rounded-2xl border border-outline-variant/15 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Weekly Volume</span>
+<span class="text-3xl font-headline font-light">1,482.4 <span class="text-lg text-primary-container">m³</span></span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Efficiency Factor</span>
+<span class="text-3xl font-headline font-light">98.2<span class="text-lg text-tertiary">%</span></span>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-container-highest/50 border border-outline-variant/20 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-surface-container-highest transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">tune</span>
+                            Global Offset
+                        </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-black uppercase tracking-widest hover:shadow-[0_0_15px_rgba(0,209,255,0.4)] transition-all">
+                            Apply Changes
+                        </button>
+</div>
+</div>
+<div class="bg-surface-container-high p-6 rounded-2xl border border-outline-variant/15 flex flex-col justify-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Next Forecast Skip</span>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-3xl">rainy</span>
+<div class="flex flex-col">
+<span class="text-xl font-headline font-bold text-secondary">Tuesday, 04:00</span>
+<span class="text-[10px] text-on-surface-variant">Probability: 88%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Large Horizontal Timeline Overview -->
+<div class="glass-panel rounded-2xl border border-outline-variant/15 overflow-hidden scada-grid">
+<!-- Timeline Header Labels -->
+<div class="grid grid-cols-8 border-b border-outline-variant/15 bg-surface-container-lowest/80 backdrop-blur-md">
+<div class="p-4 border-r border-outline-variant/15 bg-surface-container-low flex items-center justify-center">
+<span class="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant">Zone Matrix</span>
+</div>
+<!-- Days -->
+<div class="p-4 flex flex-col items-center border-r border-outline-variant/5">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">MON</span>
+<span class="text-xl font-headline font-bold">14</span>
+</div>
+<div class="p-4 flex flex-col items-center border-r border-outline-variant/5">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">TUE</span>
+<span class="text-xl font-headline font-bold text-secondary">15</span>
+</div>
+<div class="p-4 flex flex-col items-center border-r border-outline-variant/5">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">WED</span>
+<span class="text-xl font-headline font-bold">16</span>
+</div>
+<div class="p-4 flex flex-col items-center border-r border-outline-variant/5">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">THU</span>
+<span class="text-xl font-headline font-bold">17</span>
+</div>
+<div class="p-4 flex flex-col items-center border-r border-outline-variant/5">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">FRI</span>
+<span class="text-xl font-headline font-bold">18</span>
+</div>
+<div class="p-4 flex flex-col items-center border-r border-outline-variant/5">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">SAT</span>
+<span class="text-xl font-headline font-bold">19</span>
+</div>
+<div class="p-4 flex flex-col items-center">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">SUN</span>
+<span class="text-xl font-headline font-bold">20</span>
+</div>
+</div>
+<!-- Timeline Rows -->
+<div class="flex flex-col">
+<!-- Zone 01 -->
+<div class="grid grid-cols-8 border-b border-outline-variant/10 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Alpha - North</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 01</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<!-- Scheduled Blocks -->
+<div class="absolute left-[5%] w-[12%] h-10 bg-primary/20 border border-primary/30 rounded-lg flex items-center justify-center group/block cursor-pointer">
+<span class="text-[9px] font-black text-primary opacity-0 group-hover/block:opacity-100 transition-opacity">04:00 - 05:30</span>
+</div>
+<div class="absolute left-[35%] w-[8%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[65%] w-[15%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[85%] w-[10%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+</div>
+</div>
+<!-- Zone 02 - Rain Skip Example -->
+<div class="grid grid-cols-8 border-b border-outline-variant/10 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Beta - Orchard</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 02</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<!-- Rain Skip Overlay for Tuesday -->
+<div class="absolute left-[14.28%] w-[14.28%] h-full bg-secondary/5 border-x border-secondary/20 z-0 pointer-events-none flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary/20 text-4xl">water_drop</span>
+</div>
+<div class="absolute left-[2%] w-[10%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[16%] w-[10%] h-10 bg-surface-container-highest border border-outline-variant/30 rounded-lg flex items-center justify-center gap-2 overflow-hidden opacity-50 grayscale">
+<span class="material-symbols-outlined text-xs text-secondary">block</span>
+<span class="text-[8px] font-bold text-on-surface-variant uppercase">RAIN SKIP</span>
+</div>
+<div class="absolute left-[45%] w-[12%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[78%] w-[8%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+</div>
+</div>
+<!-- Zone 03 -->
+<div class="grid grid-cols-8 border-b border-outline-variant/10 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Gamma - Perimeter</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 03</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<div class="absolute left-[10%] w-[18%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[40%] w-[18%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[70%] w-[18%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+</div>
+</div>
+<!-- Zone 04 -->
+<div class="grid grid-cols-8 border-b border-outline-variant/10 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Delta - Nursery</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 04</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<div class="absolute left-[5%] w-[5%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[25%] w-[5%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[45%] w-[5%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[65%] w-[5%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[85%] w-[5%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+</div>
+</div>
+<!-- Zone 05 -->
+<div class="grid grid-cols-8 border-b border-outline-variant/10 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Epsilon - Frontage</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 05</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<div class="absolute left-[12%] w-[25%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+<div class="absolute left-[62%] w-[25%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+</div>
+</div>
+<!-- Zone 06 -->
+<div class="grid grid-cols-8 border-b border-outline-variant/10 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Zeta - Roof Garden</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 06</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<div class="absolute left-[30%] w-[40%] h-10 bg-primary/20 border border-primary/30 rounded-lg"></div>
+</div>
+</div>
+<!-- Zone 07 -->
+<div class="grid grid-cols-8 group hover:bg-surface-container/30 transition-colors">
+<div class="p-4 border-r border-outline-variant/15 flex items-center gap-3">
+<div class="w-1.5 h-8 bg-tertiary rounded-full"></div>
+<div>
+<div class="text-[10px] font-bold text-on-surface-variant uppercase">Eta - Reserve</div>
+<div class="text-sm font-headline font-bold text-primary">ZONE 07</div>
+</div>
+</div>
+<div class="col-span-7 p-2 relative flex items-center">
+<div class="absolute left-[5%] w-[90%] h-10 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center">
+<span class="text-[9px] font-black text-on-surface-variant tracking-[0.4em] uppercase">Low Flow Maintenance Cycle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Volume Estimations & Micro-Readouts -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="p-6 bg-surface-container rounded-xl border border-outline-variant/10">
+<span class="text-[10px] font-black text-on-surface-variant tracking-widest uppercase mb-4 block">Peak Consumption</span>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-headline font-bold">14.2</span>
+<span class="text-primary-container text-sm font-bold mb-1">m³/HR</span>
+</div>
+<div class="mt-4 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[72%]"></div>
+</div>
+<div class="mt-2 text-[10px] text-on-surface-variant flex justify-between">
+<span>72% OF THRESHOLD</span>
+<span>NOMINAL</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container rounded-xl border border-outline-variant/10">
+<span class="text-[10px] font-black text-on-surface-variant tracking-widest uppercase mb-4 block">Saturation Target</span>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-headline font-bold">85</span>
+<span class="text-tertiary text-sm font-bold mb-1">%</span>
+</div>
+<div class="mt-4 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[85%] shadow-[0_0_8px_rgba(75,241,255,0.4)]"></div>
+</div>
+<div class="mt-2 text-[10px] text-on-surface-variant flex justify-between">
+<span>OPTIMAL</span>
+<span>+2% VS LAST WEEK</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container rounded-xl border border-outline-variant/10">
+<span class="text-[10px] font-black text-on-surface-variant tracking-widest uppercase mb-4 block">Forecast Impact</span>
+<div class="flex items-end gap-2">
+<span class="text-4xl font-headline font-bold">-210</span>
+<span class="text-secondary text-sm font-bold mb-1">m³</span>
+</div>
+<div class="mt-4 flex gap-1">
+<div class="h-3 w-1 bg-secondary rounded-full opacity-100"></div>
+<div class="h-3 w-1 bg-secondary rounded-full opacity-80"></div>
+<div class="h-3 w-1 bg-secondary rounded-full opacity-60"></div>
+<div class="h-3 w-1 bg-secondary rounded-full opacity-40"></div>
+<div class="h-3 w-1 bg-secondary rounded-full opacity-20"></div>
+</div>
+<div class="mt-2 text-[10px] text-on-surface-variant">RAIN SKIP SAVINGS PROJECTED</div>
+</div>
+<div class="p-6 glass-panel rounded-xl border border-primary/20 flex flex-col justify-between">
+<div>
+<span class="text-[10px] font-black text-primary tracking-widest uppercase mb-1 block">Global Override</span>
+<p class="text-[10px] text-on-surface-variant leading-relaxed">Instantly adjust all active schedules by percentage offset.</p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<button class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-2xl font-headline font-bold text-primary">0%</span>
+<button class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Advanced Status Micro-chips at bottom -->
+<div class="mt-12 flex flex-wrap gap-4 items-center justify-center pb-12">
+<div class="px-4 py-2 bg-surface-container-high rounded-full border border-outline-variant/10 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Hydration Health: EXCELLENT</span>
+</div>
+<div class="px-4 py-2 bg-surface-container-high rounded-full border border-outline-variant/10 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Pumping Unit: NOMINAL</span>
+</div>
+<div class="px-4 py-2 bg-surface-container-high rounded-full border border-outline-variant/10 flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-[10px] font-bold tracking-widest text-on-surface-variant uppercase">Weather API: ACTIVE</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

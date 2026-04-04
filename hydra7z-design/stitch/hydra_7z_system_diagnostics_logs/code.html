@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HYDRA-7Z | Execution Logs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#5e4200",
+              "tertiary-container": "#00d5e2",
+              "primary": "#a4e6ff",
+              "error-container": "#93000a",
+              "primary-container": "#00d1ff",
+              "on-error": "#690005",
+              "tertiary": "#4bf1ff",
+              "on-primary": "#003543",
+              "on-primary-fixed-variant": "#004e60",
+              "secondary-fixed-dim": "#ffba20",
+              "on-primary-container": "#00566a",
+              "secondary": "#ffdb9d",
+              "primary-fixed": "#b7eaff",
+              "on-secondary-fixed": "#271900",
+              "on-background": "#e5e2e1",
+              "on-tertiary-container": "#00585e",
+              "inverse-on-surface": "#313030",
+              "on-surface": "#e5e2e1",
+              "surface-container-highest": "#353534",
+              "on-surface-variant": "#bbc9cf",
+              "background": "#131313",
+              "surface-container-lowest": "#0e0e0e",
+              "surface-bright": "#393939",
+              "surface": "#131313",
+              "inverse-surface": "#e5e2e1",
+              "outline": "#859399",
+              "inverse-primary": "#00677f",
+              "secondary-fixed": "#ffdea8",
+              "on-error-container": "#ffdad6",
+              "tertiary-fixed": "#7df4ff",
+              "error": "#ffb4ab",
+              "surface-container": "#201f1f",
+              "surface-tint": "#4cd6ff",
+              "surface-dim": "#131313",
+              "on-tertiary": "#00363a",
+              "secondary-container": "#feb700",
+              "on-tertiary-fixed-variant": "#004f54",
+              "on-tertiary-fixed": "#002022",
+              "on-primary-fixed": "#001f28",
+              "tertiary-fixed-dim": "#00dbe9",
+              "outline-variant": "#3c494e",
+              "surface-container-low": "#1c1b1b",
+              "surface-variant": "#353534",
+              "surface-container-high": "#2a2a2a",
+              "primary-fixed-dim": "#4cd6ff",
+              "on-secondary-container": "#6b4b00",
+              "on-secondary": "#412d00"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #131313;
+            color: #e5e2e1;
+            font-family: 'Inter', sans-serif;
+        }
+        .scada-grid {
+            background-image: radial-gradient(circle, #3c494e 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.05;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen overflow-x-hidden">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#131313] flex flex-col border-r border-[#3c494e]/15 pt-20 pb-8 px-4 font-['Space_Grotesk'] text-sm tracking-wide z-40">
+<div class="mb-8 px-2">
+<h1 class="text-lg font-black text-[#a4e6ff] mb-2">HYDRA-7Z</h1>
+<p class="text-[0.6875rem] uppercase tracking-[0.1rem] text-[#888888]">OPERATOR UNIT 01</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-xl">calendar_today</span>
+<span>Schedule</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#00d1ff] border-l-2 border-[#4bf1ff] bg-[#00d1ff]/10 transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span>Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-xl">warning</span>
+<span>Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-[#888888] hover:text-white hover:bg-[#1c1b1b] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#888888] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-xl">terminal</span>
+<span>Diagnostic</span>
+</a>
+<button class="w-full mt-4 py-3 bg-error-container/20 text-error font-bold text-xs tracking-widest border border-error/30 hover:bg-error-container/40 transition-colors uppercase">
+                FORCE SHUTDOWN
+            </button>
+</div>
+</aside>
+<!-- Top AppBar -->
+<header class="fixed top-0 right-0 left-0 h-16 bg-[#131313] flex justify-between items-center px-8 z-50 border-b border-[#3c494e]/15">
+<div class="flex items-center gap-8 pl-64">
+<span class="text-xl font-bold tracking-tighter text-[#a4e6ff]">HYDRA-7Z</span>
+<div class="hidden md:flex gap-6 items-center">
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-[#444444]">System Status: <span class="text-tertiary">NOMINAL</span></span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-[#444444]">Active Flow: <span class="text-primary">4.2L/s</span></span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#444444] hover:bg-[#1c1b1b] transition-colors rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#444444] hover:bg-[#1c1b1b] transition-colors rounded-full">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+<img alt="Operator Profile" data-alt="Close up of a human profile avatar icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtOUBrR9DIo1kuV9SKNJmsoVRC7gm6pvn_Qx7OPuJyHeuk6qCwueALDdpAhEZPWThiZ6Yur0nkqPVWLOi7UeVcoqMoZDTwWXDTKiehVOmS8-MVCE42MGIuMD9fP1AvD5gXXgyojaydi159xQ99f8dz8hwtOyn5EeWaoYUnRrN_aeJaBsoAPgBiJVLxCUxu4Z3kj-HxfFKCko9_m5vcEQLdKalnSGnFbsXVBrFH14NWu9p9prIp0mFy0VPGGJ6CNwwNjty-jwjZFZo"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 ml-64 pt-16 relative">
+<div class="absolute inset-0 scada-grid pointer-events-none"></div>
+<div class="p-8 max-w-7xl mx-auto space-y-8 relative z-10">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.2rem] text-[0.6875rem] text-on-surface-variant/60">System Monitoring</span>
+<h2 class="text-4xl font-headline font-bold text-primary mt-1">Execution Logs</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-surface-container-low p-1 rounded-lg flex border border-outline-variant/10">
+<button class="px-4 py-2 text-xs font-bold font-headline uppercase tracking-wider text-primary bg-primary/10 rounded-md">Real-time</button>
+<button class="px-4 py-2 text-xs font-bold font-headline uppercase tracking-wider text-on-surface-variant hover:text-on-surface">Historical</button>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors text-sm font-medium border border-outline-variant/20 rounded-md">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filter View
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary hover:shadow-[0_0_15px_rgba(0,209,255,0.4)] transition-all text-sm font-bold rounded-md">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Export CSV
+                    </button>
+</div>
+</div>
+<!-- Aggregate Metrics (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-low p-6 rounded-xl border-l-2 border-primary relative overflow-hidden group">
+<div class="relative z-10">
+<p class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-on-surface-variant">Total Weekly Volume</p>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-4xl font-headline font-bold text-on-surface">142.8</span>
+<span class="text-xl font-headline font-medium text-primary">kL</span>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[0.75rem] text-tertiary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+12.4% vs last week</span>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'opsz' 48;">water_drop</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-l-2 border-tertiary relative overflow-hidden group">
+<div class="relative z-10">
+<p class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-on-surface-variant">System Efficiency</p>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-4xl font-headline font-bold text-on-surface">98.2</span>
+<span class="text-xl font-headline font-medium text-tertiary">%</span>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[0.75rem] text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Optimal performance detected</span>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'opsz' 48;">bolt</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-l-2 border-secondary relative overflow-hidden group">
+<div class="relative z-10">
+<p class="font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-[0.6875rem] text-on-surface-variant">Active Zone Status</p>
+<div class="flex items-baseline gap-2 mt-2">
+<span class="text-4xl font-headline font-bold text-on-surface">04</span>
+<span class="text-xl font-headline font-medium text-secondary">/ 12</span>
+</div>
+<div class="flex items-center gap-2 mt-4 text-[0.75rem] text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span>Next cycle in 02:14:00</span>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'opsz' 48;">grid_view</span>
+</div>
+</div>
+</div>
+<!-- Main Usage Chart -->
+<div class="bg-surface-container-low p-8 rounded-xl border border-outline-variant/10">
+<div class="flex justify-between items-center mb-10">
+<div>
+<h3 class="font-headline font-bold text-lg text-on-surface">30-Day Water Consumption</h3>
+<p class="text-sm text-on-surface-variant">Daily distribution of volumetric output</p>
+</div>
+<div class="flex gap-2">
+<span class="flex items-center gap-2 text-xs font-medium text-on-surface-variant">
+<span class="w-3 h-3 bg-primary rounded-sm"></span> Volume (kL)
+                        </span>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between gap-1.5 px-2">
+<!-- Bar Chart Sim -->
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[45%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-surface-bright text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">4.2</div>
+</div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[60%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[30%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[75%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[50%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[85%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[40%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[55%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[65%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[90%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[35%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[50%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[45%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[70%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[55%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[40%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[60%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[30%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[80%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[50%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[45%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[65%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[55%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[95%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[40%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[35%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[60%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[50%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[75%]"></div>
+<div class="flex-1 bg-primary/20 hover:bg-primary/40 transition-colors rounded-t-sm relative group h-[45%]"></div>
+</div>
+<div class="mt-4 pt-4 border-t border-outline-variant/10 flex justify-between text-[0.6875rem] font-medium text-on-surface-variant/40 tracking-wider">
+<span>30 DAYS AGO</span>
+<span>15 DAYS AGO</span>
+<span>CURRENT CYCLE</span>
+</div>
+</div>
+<!-- Execution Logs Table -->
+<div class="bg-surface-container-low rounded-xl border border-outline-variant/10 overflow-hidden">
+<!-- Table Header/Filters -->
+<div class="px-6 py-4 border-b border-outline-variant/10 flex flex-wrap gap-4 items-center justify-between bg-surface-container">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<label class="font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant">Date Range</label>
+<select class="bg-surface-container-lowest text-xs font-medium px-3 py-1.5 rounded border-none focus:ring-1 focus:ring-primary/40">
+<option>Last 24 Hours</option>
+<option selected="">Last 7 Days</option>
+<option>Custom Range</option>
+</select>
+</div>
+<div class="flex items-center gap-2">
+<label class="font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant">Zone</label>
+<select class="bg-surface-container-lowest text-xs font-medium px-3 py-1.5 rounded border-none focus:ring-1 focus:ring-primary/40">
+<option>All Zones</option>
+<option>Zone 01 - North Lawn</option>
+<option>Zone 02 - Perimeter</option>
+<option>Zone 04 - Greenhouse</option>
+</select>
+</div>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="bg-surface-container-lowest pl-9 pr-4 py-1.5 text-xs rounded border-none focus:ring-1 focus:ring-primary/40 w-64" placeholder="Search event ID..." type="text"/>
+</div>
+</div>
+<!-- Table Content -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="px-6 py-4 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant">Timestamp</th>
+<th class="px-6 py-4 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant">Zone</th>
+<th class="px-6 py-4 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant">Duration</th>
+<th class="px-6 py-4 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant text-right">Volume</th>
+<th class="px-6 py-4 font-['Space_Grotesk'] uppercase tracking-widest text-[10px] text-on-surface-variant text-center">Status</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 text-sm">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="font-medium text-on-surface">2023-11-24 05:00:12</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Scheduled Cycle - Morning</div>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(75,241,255,0.6)]"></span>
+                                        ZONE 04
+                                    </span>
+</td>
+<td class="px-6 py-4 font-mono">15:00 min</td>
+<td class="px-6 py-4 text-right font-headline font-medium">4,200 L</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[10px] font-bold uppercase tracking-wider border border-tertiary/20">
+                                        Completed
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">info</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="font-medium text-on-surface">2023-11-23 18:30:00</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Scheduled Cycle - Evening</div>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2 text-on-surface-variant/60">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(255,219,157,0.6)]"></span>
+                                        ZONE 02
+                                    </span>
+</td>
+<td class="px-6 py-4 font-mono">--:--</td>
+<td class="px-6 py-4 text-right font-headline font-medium text-on-surface-variant/60">0 L</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-wider border border-secondary/20">
+                                        Rain Skip
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">info</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="font-medium text-on-surface">2023-11-23 14:12:45</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Manual Override</div>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-error shadow-[0_0_8px_rgba(255,180,171,0.6)]"></span>
+                                        ZONE 01
+                                    </span>
+</td>
+<td class="px-6 py-4 font-mono">04:22 min</td>
+<td class="px-6 py-4 text-right font-headline font-medium">850 L</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-error/10 text-error text-[10px] font-bold uppercase tracking-wider border border-error/20">
+                                        Leak Alarm
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-error hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-lg">report</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="font-medium text-on-surface">2023-11-23 05:00:00</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Scheduled Cycle - Morning</div>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                        ZONE 04
+                                    </span>
+</td>
+<td class="px-6 py-4 font-mono">15:00 min</td>
+<td class="px-6 py-4 text-right font-headline font-medium">4,180 L</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[10px] font-bold uppercase tracking-wider border border-tertiary/20">
+                                        Completed
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">info</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<div class="font-medium text-on-surface">2023-11-22 18:30:00</div>
+<div class="text-[10px] text-on-surface-variant uppercase tracking-tighter">Scheduled Cycle - Evening</div>
+</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                        ZONE 02
+                                    </span>
+</td>
+<td class="px-6 py-4 font-mono">20:00 min</td>
+<td class="px-6 py-4 text-right font-headline font-medium">5,600 L</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-tertiary/10 text-tertiary text-[10px] font-bold uppercase tracking-wider border border-tertiary/20">
+                                        Completed
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">info</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-outline-variant/10 flex items-center justify-between bg-surface-container/30">
+<p class="text-xs text-on-surface-variant">Showing 1-10 of 2,451 events</p>
+<div class="flex items-center gap-2">
+<button class="p-1 text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-20" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary text-xs font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest text-xs transition-colors text-on-surface-variant">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest text-xs transition-colors text-on-surface-variant">3</button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container-highest text-xs transition-colors text-on-surface-variant">245</button>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="pt-8 pb-4 flex justify-between items-center text-[0.6875rem] font-['Space_Grotesk'] uppercase tracking-[0.1rem] text-on-surface-variant/40">
+<div class="flex gap-4">
+<span>Database ID: HY-7Z-L01</span>
+<span>Lat: 34.0522° N</span>
+<span>Long: 118.2437° W</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span>Data Stream Encrypted</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

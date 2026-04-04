@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HYDRA-7Z | Execution Logs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-tertiary": "#00363a",
+                "on-primary": "#003543",
+                "outline": "#859399",
+                "surface-container": "#201f1f",
+                "on-tertiary-fixed": "#002022",
+                "on-tertiary-fixed-variant": "#004f54",
+                "surface-variant": "#353534",
+                "on-primary-container": "#00566a",
+                "tertiary-container": "#00d5e2",
+                "surface-container-high": "#2a2a2a",
+                "inverse-surface": "#e5e2e1",
+                "error": "#ffb4ab",
+                "secondary-container": "#feb700",
+                "on-secondary": "#412d00",
+                "inverse-primary": "#00677f",
+                "tertiary-fixed-dim": "#00dbe9",
+                "on-error-container": "#ffdad6",
+                "surface-container-highest": "#353534",
+                "on-background": "#e5e2e1",
+                "primary-fixed": "#b7eaff",
+                "on-surface": "#e5e2e1",
+                "error-container": "#93000a",
+                "on-secondary-fixed": "#271900",
+                "surface": "#131313",
+                "secondary": "#ffdb9d",
+                "on-secondary-fixed-variant": "#5e4200",
+                "on-primary-fixed-variant": "#004e60",
+                "outline-variant": "#3c494e",
+                "primary-container": "#00d1ff",
+                "secondary-fixed-dim": "#ffba20",
+                "primary-fixed-dim": "#4cd6ff",
+                "background": "#131313",
+                "on-secondary-container": "#6b4b00",
+                "inverse-on-surface": "#313030",
+                "on-primary-fixed": "#001f28",
+                "surface-dim": "#131313",
+                "on-surface-variant": "#bbc9cf",
+                "tertiary": "#4bf1ff",
+                "surface-container-lowest": "#0e0e0e",
+                "on-tertiary-container": "#00585e",
+                "on-error": "#690005",
+                "surface-container-low": "#1c1b1b",
+                "surface-bright": "#393939",
+                "secondary-fixed": "#ffdea8",
+                "primary": "#a4e6ff",
+                "tertiary-fixed": "#7df4ff",
+                "surface-tint": "#4cd6ff"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .data-mono {
+            font-family: 'Space Grotesk', monospace;
+        }
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body selection:bg-primary/30 min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#131313] dark:bg-[#131313] docked full-width top-0 z-50 flex justify-between items-center w-full px-6 py-4 max-w-none sticky">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#a4e6ff] text-2xl" data-icon="water_drop">water_drop</span>
+<h1 class="font-['Space_Grotesk'] tracking-tight text-2xl font-bold uppercase text-[#a4e6ff] font-black tracking-widest text-xl">HYDRA-7Z</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_rgba(75,241,255,0.8)]"></span>
+<span class="text-cyan-400 dark:text-[#a4e6ff] font-['Space_Grotesk'] tracking-tight text-sm font-bold uppercase">ONLINE</span>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-6 pt-8">
+<!-- Title & Subtitle -->
+<div class="mb-12">
+<p class="text-primary text-[10px] uppercase tracking-[0.2rem] font-semibold mb-2">System Diagnostics</p>
+<h2 class="font-headline text-5xl font-bold text-on-surface tracking-tight">Execution Logs</h2>
+</div>
+<!-- Summary Section: Bento Style -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="md:col-span-2 bg-surface-container-low p-8 rounded-xl flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-8xl" data-icon="monitoring">monitoring</span>
+</div>
+<div>
+<span class="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Total Volume (Last 7 Days)</span>
+<div class="flex items-baseline gap-3 mt-4">
+<span class="data-mono text-7xl font-bold text-primary tracking-tighter">842</span>
+<span class="text-primary/60 font-headline text-2xl font-medium">Gallons</span>
+</div>
+</div>
+<div class="mt-8 flex gap-4">
+<div class="h-1 flex-1 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[74%]"></div>
+</div>
+<span class="text-[10px] font-mono text-on-surface-variant">74% OF CAP</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-8 rounded-xl flex flex-col justify-between border-l-2 border-tertiary relative">
+<div>
+<span class="text-on-surface-variant text-[10px] uppercase tracking-widest font-bold">Efficiency</span>
+<div class="mt-4 flex items-center gap-4">
+<span class="data-mono text-6xl font-bold text-tertiary">94<span class="text-2xl opacity-50">%</span></span>
+</div>
+</div>
+<div class="mt-4 text-sm text-on-surface-variant leading-relaxed">
+                    System operating within <span class="text-tertiary font-bold">Optimal Parameter Range</span>. No leaks detected in current cycle.
+                </div>
+</div>
+</section>
+<!-- Log List -->
+<section class="space-y-4">
+<div class="flex justify-between items-end mb-6">
+<h3 class="font-headline text-xl font-semibold text-on-surface">Recent Events</h3>
+<span class="text-xs text-on-surface-variant font-mono">FILTER: ALL_ZONES_ACTIVE</span>
+</div>
+<!-- Log Entries -->
+<!-- Entry 1 -->
+<div class="group bg-surface-container-lowest hover:bg-surface-container transition-colors duration-300 rounded-xl p-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-6 border border-outline-variant/5">
+<div class="flex items-center gap-4 min-w-[240px]">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="sprinkler">sprinkler</span>
+</div>
+<div>
+<h4 class="text-on-surface font-semibold text-sm">Zone 01: Front Lawn</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium mt-0.5">Today, 05:30 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold text-tertiary uppercase tracking-widest">COMPLETED</span>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Duration</p>
+<p class="data-mono text-sm font-semibold">15:00 min</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Volume</p>
+<p class="data-mono text-sm font-semibold text-primary">12.4 GAL</p>
+</div>
+</div>
+<div class="w-8 flex justify-end">
+<span class="material-symbols-outlined text-on-surface-variant opacity-20" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Entry 2: Rain Skip -->
+<div class="group bg-surface-container-lowest hover:bg-surface-container transition-colors duration-300 rounded-xl p-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-6 border border-outline-variant/5">
+<div class="flex items-center gap-4 min-w-[240px]">
+<div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="cloud_off">cloud_off</span>
+</div>
+<div>
+<h4 class="text-on-surface font-semibold text-sm">Zone 04: Side Garden</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium mt-0.5">Today, 04:00 AM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-widest">RAIN SKIP</span>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Duration</p>
+<p class="data-mono text-sm font-semibold opacity-30">00:00 min</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Volume</p>
+<p class="data-mono text-sm font-semibold opacity-30">0.0 GAL</p>
+</div>
+</div>
+<div class="w-8 flex justify-end">
+<span class="material-symbols-outlined text-on-surface-variant opacity-20" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Entry 3 -->
+<div class="group bg-surface-container-lowest hover:bg-surface-container transition-colors duration-300 rounded-xl p-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-6 border border-outline-variant/5">
+<div class="flex items-center gap-4 min-w-[240px]">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="water_ph">water_ph</span>
+</div>
+<div>
+<h4 class="text-on-surface font-semibold text-sm">Zone 02: Back Patio</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium mt-0.5">Yesterday, 10:15 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold text-tertiary uppercase tracking-widest">COMPLETED</span>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Duration</p>
+<p class="data-mono text-sm font-semibold">20:00 min</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Volume</p>
+<p class="data-mono text-sm font-semibold text-primary">18.9 GAL</p>
+</div>
+</div>
+<div class="w-8 flex justify-end">
+<span class="material-symbols-outlined text-on-surface-variant opacity-20" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Entry 4 -->
+<div class="group bg-surface-container-lowest hover:bg-surface-container transition-colors duration-300 rounded-xl p-5 flex flex-wrap md:flex-nowrap items-center justify-between gap-6 border border-outline-variant/5">
+<div class="flex items-center gap-4 min-w-[240px]">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="potted_plant">potted_plant</span>
+</div>
+<div>
+<h4 class="text-on-surface font-semibold text-sm">Zone 03: Greenhouse</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider font-medium mt-0.5">Yesterday, 08:00 PM</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span class="text-[10px] font-bold text-tertiary uppercase tracking-widest">COMPLETED</span>
+</div>
+<div class="grid grid-cols-2 gap-8">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Duration</p>
+<p class="data-mono text-sm font-semibold">05:00 min</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">Volume</p>
+<p class="data-mono text-sm font-semibold text-primary">4.2 GAL</p>
+</div>
+</div>
+<div class="w-8 flex justify-end">
+<span class="material-symbols-outlined text-on-surface-variant opacity-20" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Technical Metadata footer -->
+<div class="mt-16 pt-8 border-t border-outline-variant/10 flex justify-between text-[10px] font-mono text-on-surface-variant/40 tracking-widest uppercase">
+<span>Hydra-7Z System Kernel v2.4.9</span>
+<span>Checksum: 0xFD29A88C1</span>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-4 bg-[#131313]/90 backdrop-blur-xl dark:bg-[#131313]/90 fixed bottom-0 w-full z-50 h-20 border-t border-[#3c494e]/15 shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold">Schedule</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#00d1ff] bg-[#00d1ff]/10 rounded-xl px-4 py-1.5 animate-pulse tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold">Logs</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-zinc-500 opacity-60 hover:opacity-100 hover:text-[#a4e6ff] transition-all tap-highlight-transparent" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-[10px] uppercase tracking-[0.1rem] font-semibold">Settings</span>
+</a>
+</nav>
+</body></html>

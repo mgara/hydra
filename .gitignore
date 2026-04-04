@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.nx/
+.vite/
+.expo/
+.claude/
+
+# SQLite
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.db-info
+
+# Secrets
+.env
+
+# Data
+apps/server/data/
+
+# OS
+.DS_Store
+
+# Build cache
+*.tsbuildinfo
