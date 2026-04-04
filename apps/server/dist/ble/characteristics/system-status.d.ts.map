@@ -1,0 +1,1 @@
+{"version":3,"file":"system-status.d.ts","sourceRoot":"","sources":["../../../src/ble/characteristics/system-status.ts"],"names":[],"mappings":"AAEA,wBAAgB,gCAAgC,CAC9C,KAAK,EAAE,GAAG,EACV,SAAS,EAAE,MAAM;IAAE,MAAM,EAAE,MAAM,CAAC;IAAC,QAAQ,EAAE,MAAM,CAAC;IAAC,WAAW,EAAE,MAAM,CAAC;IAAC,QAAQ,EAAE,MAAM,CAAC;IAAC,QAAQ,EAAE,MAAM,CAAA;CAAE;;;EA0B/G"}

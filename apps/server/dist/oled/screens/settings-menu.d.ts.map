@@ -1,0 +1,1 @@
+{"version":3,"file":"settings-menu.d.ts","sourceRoot":"","sources":["../../../src/oled/screens/settings-menu.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,0BAA0B,CAAC;AAY5D,wBAAgB,kBAAkB,CAAC,EAAE,EAAE,WAAW,EAAE,aAAa,EAAE,MAAM,GAAG,IAAI,CAuC/E;AAED,eAAO,MAAM,oBAAoB,QAAoB,CAAC"}
