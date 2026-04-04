@@ -66,7 +66,7 @@ if [ "$DEPS_HASH" != "$PREV_HASH" ] || [ "${1:-}" = "--deps" ]; then
   step_done
 
   step_start "Packing node_modules"
-  COPYFILE_DISABLE=1 tar czf "$STAGING/node_modules.tar.gz" -C "$STAGING" --exclude='pigpio/build' node_modules
+  COPYFILE_DISABLE=1 tar czf "$STAGING/node_modules.tar.gz" -C "$STAGING" --no-xattrs --exclude='pigpio/build' node_modules
   step_done
 
   step_start "Transferring node_modules to Pi"
