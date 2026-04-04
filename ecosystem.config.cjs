@@ -11,6 +11,7 @@ module.exports = {
         MATTER_ENABLED: 'true',
         TURSO_TOKEN: process.env.TURSO_TOKEN || '',
         TURSO_URL: process.env.TURSO_URL || '',
+        MQTT_BROKER: process.env.MQTT_BROKER || 'mqtt://localhost:1883',
       },
       exec_mode: 'fork',
       instances: 1,
