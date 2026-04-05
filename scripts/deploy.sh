@@ -55,7 +55,7 @@ if [ "$ON_PI" = true ]; then
       step_done
     else
       step_start "Rebuilding pigpio native module (first time for $NODE_ABI)"
-      cd apps/server && npm rebuild pigpio 2>&1 || true
+      cd apps/server && npm rebuild pigpio --jobs=1 2>&1 || true
       cd "$HYDRA_DIR"
       if [ -f "$PIGPIO_BUILD/Release/pigpio.node" ]; then
         mkdir -p "$PIGPIO_CACHE/$NODE_ABI"
