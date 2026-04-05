@@ -42,13 +42,19 @@ export class MqttClient extends EventEmitter {
             this.handleMessage(topic, payload);
         });
         this.client.on('error', (err) => {
-            console.error('[MQTT] Connection error:', err.message);
+            console.error(`[MQTT] Connection error: ${err.message}`, { code: err.code, broker: MQTT_BROKER, stack: err.stack });
         });
         this.client.on('close', () => {
             console.warn('[MQTT] Connection closed');
         });
+        this.client.on('disconnect', (packet) => {
+            console.warn('[MQTT] Disconnected by broker:', packet);
+        });
         this.client.on('offline', () => {
             console.warn('[MQTT] Client offline');
+        });
+        this.client.on('reconnect', () => {
+            console.log(`[MQTT] Reconnecting to ${MQTT_BROKER}...`);
         });
     }
     handleMessage(topic, payload) {
