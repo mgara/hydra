@@ -49,9 +49,11 @@ if [ "$ON_PI" = true ]; then
     echo -e "\n${DIM}    deps unchanged, skipping install${NC}"
   fi
 
-  # ── pigpio native module ──────────────────────────
+  # ── Native modules (pigpio + i2c-bus) ───────────────
   NODE_ABI="node-v$(node -e 'console.log(process.versions.modules)')"
   NODE_VERSION="$(node -v)"
+
+  # ── pigpio native module ──────────────────────────
   PIGPIO_CACHE="/home/pi/.cache/hydra-pigpio"
   PIGPIO_ABI_FILE="$PIGPIO_CACHE/abi"
   PIGPIO_BINARY="$PIGPIO_CACHE/$NODE_ABI/pigpio.node"
@@ -63,7 +65,6 @@ if [ "$ON_PI" = true ]; then
 
   INSTALLED_ABI=$(cat "$PIGPIO_ABI_FILE" 2>/dev/null || echo "")
 
-  # Build pigpio natively if no cached binary or ABI changed
   if [ ! -f "$PIGPIO_BINARY" ] || [ "$INSTALLED_ABI" != "$NODE_ABI" ]; then
     echo -e "\n${CYAN}    pigpio cached for: ${INSTALLED_ABI:-none}${NC}"
     echo -e "${CYAN}    node running:      $NODE_ABI ($NODE_VERSION)${NC}"
@@ -85,7 +86,6 @@ if [ "$ON_PI" = true ]; then
     echo -e "\n${DIM}    pigpio.node cached and up to date ($NODE_ABI)${NC}"
   fi
 
-  # Copy pigpio.node to all locations where bindings looks for it
   if [ -f "$PIGPIO_BINARY" ]; then
     step_start "Restoring pigpio.node ($NODE_ABI)"
     for target in "${PIGPIO_TARGETS[@]}"; do
@@ -93,6 +93,52 @@ if [ "$ON_PI" = true ]; then
       cp "$PIGPIO_BINARY" "$target/"
     done
     step_done
+  fi
+
+  # ── i2c-bus native module ─────────────────────────
+  I2C_CACHE="/home/pi/.cache/hydra-i2c-bus"
+  I2C_ABI_FILE="$I2C_CACHE/abi"
+  I2C_BINARY="$I2C_CACHE/$NODE_ABI/i2c.node"
+  I2C_SOURCE="node_modules/i2c-bus"
+  I2C_TARGETS=(
+    "node_modules/i2c-bus/build/Release"
+    "apps/server/node_modules/i2c-bus/build/Release"
+  )
+
+  I2C_INSTALLED_ABI=$(cat "$I2C_ABI_FILE" 2>/dev/null || echo "")
+
+  if [ -d "$I2C_SOURCE" ]; then
+    if [ ! -f "$I2C_BINARY" ] || [ "$I2C_INSTALLED_ABI" != "$NODE_ABI" ]; then
+      echo -e "\n${CYAN}    i2c-bus cached for: ${I2C_INSTALLED_ABI:-none}${NC}"
+      echo -e "${CYAN}    node running:       $NODE_ABI ($NODE_VERSION)${NC}"
+
+      step_start "Building i2c.node natively (node-gyp, --jobs=1)"
+      cd "$I2C_SOURCE" && npx --yes node-gyp rebuild --jobs=1 2>&1
+      cd "$HYDRA_DIR"
+
+      if [ -f "$I2C_SOURCE/build/Release/i2c.node" ]; then
+        mkdir -p "$I2C_CACHE/$NODE_ABI"
+        cp "$I2C_SOURCE/build/Release/i2c.node" "$I2C_BINARY"
+        echo "$NODE_ABI" > "$I2C_ABI_FILE"
+        echo -e "${DIM}    cached to $I2C_BINARY${NC}"
+      else
+        echo -e "${RED}    ⚠ i2c-bus build failed — OLED will not work${NC}"
+      fi
+      step_done
+    else
+      echo -e "\n${DIM}    i2c.node cached and up to date ($NODE_ABI)${NC}"
+    fi
+
+    if [ -f "$I2C_BINARY" ]; then
+      step_start "Restoring i2c.node ($NODE_ABI)"
+      for target in "${I2C_TARGETS[@]}"; do
+        mkdir -p "$target"
+        cp "$I2C_BINARY" "$target/"
+      done
+      step_done
+    fi
+  else
+    echo -e "\n${DIM}    i2c-bus not installed, skipping native build${NC}"
   fi
 
   # ── Start PM2 ──────────────────────────────────────
