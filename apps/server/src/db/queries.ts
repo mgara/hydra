@@ -210,8 +210,8 @@ export async function getEnabledSchedules(): Promise<Schedule[]> {
 
 export async function createSchedule(input: ScheduleInput): Promise<number> {
   const result = await getDb().execute({
-    sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority, smart)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.zone,
       input.name,
@@ -223,6 +223,7 @@ export async function createSchedule(input: ScheduleInput): Promise<number> {
       input.enabled !== false ? 1 : 0,
       input.rainSkip !== false ? 1 : 0,
       input.priority ? 1 : 0,
+      input.smart ? 1 : 0,
     ],
   });
   return Number(result.lastInsertRowid);
@@ -241,6 +242,7 @@ export async function updateSchedule(id: number, input: Partial<ScheduleInput>) 
   if (input.enabled !== undefined) { fields.push('enabled = ?'); values.push(input.enabled ? 1 : 0); }
   if (input.rainSkip !== undefined) { fields.push('rain_skip = ?'); values.push(input.rainSkip ? 1 : 0); }
   if (input.priority !== undefined) { fields.push('priority = ?'); values.push(input.priority ? 1 : 0); }
+  if (input.smart !== undefined) { fields.push('smart = ?'); values.push(input.smart ? 1 : 0); }
 
   if (fields.length === 0) return;
 
@@ -605,6 +607,7 @@ function rowToSchedule(row: Row): Schedule {
     enabled: !!row.enabled,
     rainSkip: !!row.rain_skip,
     priority: !!row.priority,
+    smart: !!row.smart,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
