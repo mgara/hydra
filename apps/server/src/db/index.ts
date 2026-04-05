@@ -10,30 +10,45 @@ export async function initDb(): Promise<void> {
   const dbPath = './data/hydra.db';
   const metadataPath = `${dbPath}-metadata`;
 
-  // If switching to Turso sync but stale metadata exists, remove it so libsql can start fresh
-  if (tursoUrl && existsSync(dbPath) && !existsSync(metadataPath)) {
-    console.warn('[DB] Removing stale db for clean Turso sync — existing local data will be re-synced from primary');
-    unlinkSync(dbPath);
-  }
-
-  try {
-    client = createClient({
-      url: `file:${dbPath}`,
-      syncUrl: tursoUrl,
-      authToken: tursoToken,
-      syncInterval: 60,
-    });
-
-    if (tursoUrl) {
+  if (tursoUrl) {
+    try {
+      // If db exists without metadata, libsql can't open in sync mode.
+      // Try as-is first; if it fails, remove only the metadata-related files and retry.
+      client = createClient({
+        url: `file:${dbPath}`,
+        syncUrl: tursoUrl,
+        authToken: tursoToken,
+        syncInterval: 60,
+      });
       await client.sync();
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg.includes('metadata file does not')) {
+        // Clean up stale WAL/SHM/metadata so libsql can re-init sync alongside existing db
+        console.warn('[DB] Cleaning stale sync state — preserving database, removing WAL/SHM files');
+        for (const suffix of ['-wal', '-shm', '-metadata']) {
+          const f = `${dbPath}${suffix}`;
+          if (existsSync(f)) unlinkSync(f);
+        }
+        try {
+          client = createClient({
+            url: `file:${dbPath}`,
+            syncUrl: tursoUrl,
+            authToken: tursoToken,
+            syncInterval: 60,
+          });
+          await client.sync();
+        } catch (retryErr) {
+          console.warn(`[DB] Turso sync failed after cleanup, falling back to local-only:`, (retryErr as Error).message);
+          client = createClient({ url: `file:${dbPath}` });
+        }
+      } else {
+        console.warn(`[DB] Turso sync failed, falling back to local-only:`, msg);
+        client = createClient({ url: `file:${dbPath}` });
+      }
     }
-  } catch (err) {
-    // Turso unreachable or sync failed — fall back to local-only
-    console.warn(`[DB] Turso sync failed, falling back to local-only:`, (err as Error).message);
+  } else {
     client = createClient({ url: `file:${dbPath}` });
-  }
-
-  if (!tursoUrl) {
     await client.execute('PRAGMA journal_mode = WAL');
     await client.execute('PRAGMA foreign_keys = ON');
   }
