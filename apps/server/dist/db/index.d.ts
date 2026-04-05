@@ -2,8 +2,8 @@ import { type Client } from '@libsql/client';
 export declare function initDb(): Promise<void>;
 export declare function getDb(): Client;
 /**
- * Write settings and read them back in a single batch sent to the primary.
- * This guarantees read-your-writes consistency in Turso embedded replica mode.
+ * Write settings and read them back in a single local batch.
+ * Turso sync happens in the background via syncInterval.
  */
 export declare function batchWriteThenRead(writes: {
     sql: string;

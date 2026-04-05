@@ -176,7 +176,7 @@ async function createFreshSchema(db) {
     await db.batch(defaults.map(([key, value]) => ({
         sql: 'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
         args: [key, value],
-    })), 'write');
+    })));
     // Clean up any corrupted rows (e.g. key='undefined' from sync issues)
     await db.execute({ sql: `DELETE FROM settings WHERE key = 'undefined'`, args: [] });
 }

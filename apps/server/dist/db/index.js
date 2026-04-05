@@ -67,15 +67,15 @@ export function getDb() {
     return client;
 }
 /**
- * Write settings and read them back in a single batch sent to the primary.
- * This guarantees read-your-writes consistency in Turso embedded replica mode.
+ * Write settings and read them back in a single local batch.
+ * Turso sync happens in the background via syncInterval.
  */
 export async function batchWriteThenRead(writes, readSql) {
     const stmts = [
         ...writes,
         { sql: readSql, args: [] },
     ];
-    const results = await getDb().batch(stmts, 'write');
+    const results = await getDb().batch(stmts);
     return results[results.length - 1];
 }
 export function closeDb() {

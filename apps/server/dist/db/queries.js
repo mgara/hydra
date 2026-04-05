@@ -86,7 +86,7 @@ export async function executeSetup(input, assignments) {
     await db.batch(assignments.map(a => ({
         sql: 'INSERT INTO gpio_assignments (role, pin, zone, label) VALUES (?, ?, ?, ?)',
         args: [a.role, a.pin, a.zone, a.label],
-    })), 'write');
+    })));
     // Create zone rows
     const zoneInserts = [];
     for (let z = 1; z <= input.zoneCount; z++) {
@@ -118,7 +118,7 @@ export async function executeSetup(input, assignments) {
     await db.batch(defaults.map(([key, value]) => ({
         sql: 'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
         args: [key, value],
-    })), 'write');
+    })));
     console.log(`[DB] Setup complete — ${input.zoneCount} zones configured`);
 }
 export async function resetSetup() {
