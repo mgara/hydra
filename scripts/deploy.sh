@@ -34,13 +34,43 @@ if [ "$ON_PI" = true ]; then
   COMBINED_HASH="${ROOT_HASH}-${SERVER_HASH}-${WEB_HASH}"
   PREV_HASH=$(cat "$DEPS_HASH_FILE" 2>/dev/null || echo "")
 
+  PIGPIO_CACHE="/home/pi/.cache/hydra-pigpio"
+  PIGPIO_BUILD="apps/server/node_modules/pigpio/build"
+  NODE_ABI="node-v$(node -e 'console.log(process.versions.modules)')"
+
   if [ "$COMBINED_HASH" != "$PREV_HASH" ] || [ "${1:-}" = "--deps" ]; then
     step_start "Installing dependencies (changed)"
     yarn install --ignore-engines
     step_done
+
+    # Restore cached pigpio build, or rebuild and cache it
+    if [ -f "$PIGPIO_CACHE/$NODE_ABI/pigpio.node" ]; then
+      step_start "Restoring cached pigpio native build ($NODE_ABI)"
+      mkdir -p "$PIGPIO_BUILD/Release"
+      cp "$PIGPIO_CACHE/$NODE_ABI/pigpio.node" "$PIGPIO_BUILD/Release/"
+      step_done
+    else
+      step_start "Rebuilding pigpio native module (first time for $NODE_ABI)"
+      cd apps/server && npm rebuild pigpio 2>&1 || true
+      cd "$HYDRA_DIR"
+      if [ -f "$PIGPIO_BUILD/Release/pigpio.node" ]; then
+        mkdir -p "$PIGPIO_CACHE/$NODE_ABI"
+        cp "$PIGPIO_BUILD/Release/pigpio.node" "$PIGPIO_CACHE/$NODE_ABI/"
+        echo -e "${DIM}    cached for future deploys${NC}"
+      fi
+      step_done
+    fi
+
     echo "$COMBINED_HASH" > "$DEPS_HASH_FILE"
   else
     echo -e "\n${DIM}    deps unchanged, skipping install${NC}"
+    # Ensure pigpio build exists even if deps didn't change
+    if [ ! -f "$PIGPIO_BUILD/Release/pigpio.node" ] && [ -f "$PIGPIO_CACHE/$NODE_ABI/pigpio.node" ]; then
+      step_start "Restoring cached pigpio native build"
+      mkdir -p "$PIGPIO_BUILD/Release"
+      cp "$PIGPIO_CACHE/$NODE_ABI/pigpio.node" "$PIGPIO_BUILD/Release/"
+      step_done
+    fi
   fi
 
   # ── Restart PM2 ──────────────────────────────────
