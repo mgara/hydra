@@ -40,7 +40,10 @@ if [ "$ON_PI" = true ]; then
 
   NODE_ABI="node-v$(node -e 'console.log(process.versions.modules)')"
   PIGPIO_CACHED="$HYDRA_DIR/scripts/pigpio-cache/$NODE_ABI/pigpio.node"
-  PIGPIO_TARGET="node_modules/pigpio/build/Release"
+  PIGPIO_TARGETS=(
+    "node_modules/pigpio/build/Release"
+    "apps/server/node_modules/pigpio/build/Release"
+  )
 
   if [ "$COMBINED_HASH" != "$PREV_HASH" ] || [ "${1:-}" = "--deps" ]; then
     step_start "Installing dependencies (changed)"
@@ -63,8 +66,12 @@ if [ "$ON_PI" = true ]; then
 
   if [ -f "$PIGPIO_CACHED" ]; then
     step_start "Restoring pre-built pigpio.node ($NODE_ABI)"
-    mkdir -p "$PIGPIO_TARGET"
-    cp "$PIGPIO_CACHED" "$PIGPIO_TARGET/"
+    for target in "${PIGPIO_TARGETS[@]}"; do
+      if [ -d "$(dirname "$target")" ] || [ -d "$(dirname "$(dirname "$target")")" ]; then
+        mkdir -p "$target"
+        cp "$PIGPIO_CACHED" "$target/"
+      fi
+    done
     echo "$NODE_ABI" > "$PIGPIO_VERSION_FILE"
     step_done
   else
