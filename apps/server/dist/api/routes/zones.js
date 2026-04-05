@@ -1,6 +1,7 @@
 import * as db from '../../db/queries.js';
-import { calculateSmartDuration } from '../../scheduler/smart.js';
+import { calculateSmartDuration, applySmartSchedule, removeSmartSchedules } from '../../scheduler/smart.js';
 import { DEFAULT_RUN_MINUTES, MAX_RUN_MINUTES } from '../../config.js';
+import { detectHardinessZone, getZone, getRecommendedPlantTypes, HARDINESS_ZONES } from '../../lib/hardiness.js';
 export function registerZoneRoutes(app, zoneManager) {
     // GET /api/zones — list all zones with live state
     app.get('/api/zones', async () => {
@@ -53,7 +54,23 @@ export function registerZoneRoutes(app, zoneManager) {
         const plantType = req.body.plantType !== undefined ? req.body.plantType : existing.plant_type;
         const smartEnabled = req.body.smartEnabled;
         await db.updateZoneProfile(zone, soilType, plantType, smartEnabled);
-        return { zone, soilType, plantType, smartEnabled: smartEnabled ?? !!existing.smart_enabled };
+        const isNowSmart = smartEnabled ?? !!existing.smart_enabled;
+        // Auto-create or remove smart schedule when toggled
+        let smartSchedule;
+        if (smartEnabled === true && soilType && plantType) {
+            const result = await applySmartSchedule(zone);
+            smartSchedule = { created: result.created, reason: result.schedule?.reason };
+        }
+        else if (smartEnabled === false) {
+            await removeSmartSchedules(zone);
+            smartSchedule = { created: false };
+        }
+        else if (isNowSmart && (req.body.soilType !== undefined || req.body.plantType !== undefined) && soilType && plantType) {
+            // Profile changed while smart is on — regenerate schedule
+            const result = await applySmartSchedule(zone);
+            smartSchedule = { created: result.created, reason: result.schedule?.reason };
+        }
+        return { zone, soilType, plantType, smartEnabled: isNowSmart, smartSchedule };
     });
     // GET /api/zones/:zone/smart — preview the smart duration calculation
     app.get('/api/zones/:zone/smart', async (req, reply) => {
@@ -63,6 +80,64 @@ export function registerZoneRoutes(app, zoneManager) {
         }
         const result = await calculateSmartDuration(zone, DEFAULT_RUN_MINUTES);
         return result;
+    });
+    // ── Hardiness Zone ──────────────────────────────────────
+    // GET /api/zones/hardiness — current hardiness zone info
+    app.get('/api/zones/hardiness', async () => {
+        const zone = await db.getSetting('hardiness_zone');
+        const minTempF = await db.getSetting('hardiness_zone_temp_f');
+        const auto = await db.getSetting('hardiness_zone_auto');
+        const growStart = await db.getSetting('growing_season_start');
+        const growEnd = await db.getSetting('growing_season_end');
+        const zoneData = zone ? getZone(zone) : null;
+        return {
+            zone: zone ?? null,
+            label: zoneData?.label ?? null,
+            minTempF: minTempF ? parseFloat(minTempF) : null,
+            auto: auto === 'true',
+            growingSeasonStart: growStart ?? null,
+            growingSeasonEnd: growEnd ?? null,
+            recommendedPlantTypes: zone ? getRecommendedPlantTypes(zone) : [],
+            allZones: HARDINESS_ZONES.map(z => ({ code: z.code, label: z.label })),
+        };
+    });
+    // POST /api/zones/hardiness/detect — auto-detect from lat/lon
+    app.post('/api/zones/hardiness/detect', async () => {
+        const result = await detectHardinessZone();
+        await db.setSetting('hardiness_zone', result.zone);
+        await db.setSetting('hardiness_zone_temp_f', String(result.minTempF));
+        await db.setSetting('hardiness_zone_auto', 'true');
+        await db.setSetting('growing_season_start', result.growingSeasonStart);
+        await db.setSetting('growing_season_end', result.growingSeasonEnd);
+        const zoneData = getZone(result.zone);
+        return {
+            zone: result.zone,
+            label: zoneData?.label ?? null,
+            minTempF: result.minTempF,
+            auto: true,
+            growingSeasonStart: result.growingSeasonStart,
+            growingSeasonEnd: result.growingSeasonEnd,
+            recommendedPlantTypes: getRecommendedPlantTypes(result.zone),
+        };
+    });
+    // PUT /api/zones/hardiness — manual override
+    app.put('/api/zones/hardiness', async (req) => {
+        const zoneData = getZone(req.body.zone);
+        if (!zoneData)
+            return { error: 'Invalid zone code' };
+        await db.setSetting('hardiness_zone', zoneData.code);
+        await db.setSetting('hardiness_zone_auto', 'false');
+        await db.setSetting('growing_season_start', zoneData.lastFrostMmDd);
+        await db.setSetting('growing_season_end', zoneData.firstFrostMmDd);
+        return {
+            zone: zoneData.code,
+            label: zoneData.label,
+            minTempF: zoneData.minTempF,
+            auto: false,
+            growingSeasonStart: zoneData.lastFrostMmDd,
+            growingSeasonEnd: zoneData.firstFrostMmDd,
+            recommendedPlantTypes: getRecommendedPlantTypes(zoneData.code),
+        };
     });
     // POST /api/zones/:zone/start — start a zone manually
     app.post('/api/zones/:zone/start', async (req, reply) => {

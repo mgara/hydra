@@ -185,8 +185,8 @@ export async function getEnabledSchedules() {
 }
 export async function createSchedule(input) {
     const result = await getDb().execute({
-        sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority, smart)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
             input.zone,
             input.name,
@@ -198,6 +198,7 @@ export async function createSchedule(input) {
             input.enabled !== false ? 1 : 0,
             input.rainSkip !== false ? 1 : 0,
             input.priority ? 1 : 0,
+            input.smart ? 1 : 0,
         ],
     });
     return Number(result.lastInsertRowid);
@@ -240,6 +241,10 @@ export async function updateSchedule(id, input) {
     if (input.priority !== undefined) {
         fields.push('priority = ?');
         values.push(input.priority ? 1 : 0);
+    }
+    if (input.smart !== undefined) {
+        fields.push('smart = ?');
+        values.push(input.smart ? 1 : 0);
     }
     if (fields.length === 0)
         return;
@@ -506,6 +511,7 @@ function rowToSchedule(row) {
         enabled: !!row.enabled,
         rainSkip: !!row.rain_skip,
         priority: !!row.priority,
+        smart: !!row.smart,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };

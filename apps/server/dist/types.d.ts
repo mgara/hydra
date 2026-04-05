@@ -21,6 +21,7 @@ export interface Schedule {
     enabled: boolean;
     rainSkip: boolean;
     priority: boolean;
+    smart: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -35,6 +36,7 @@ export interface ScheduleInput {
     enabled?: boolean;
     rainSkip?: boolean;
     priority?: boolean;
+    smart?: boolean;
 }
 export type LogStatus = 'completed' | 'rain_skip' | 'manual_stop' | 'leak_alarm' | 'error';
 export interface ExecutionLog {

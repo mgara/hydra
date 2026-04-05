@@ -15,11 +15,14 @@ const SOIL_DATA = {
 const PLANT_DATA = {
     cool_turf: { rootDepth: 6, kc: 0.80, mad: 0.50 },
     warm_turf: { rootDepth: 8, kc: 0.60, mad: 0.50 },
+    evergreen_trees: { rootDepth: 18, kc: 0.45, mad: 0.50 },
+    shade_trees: { rootDepth: 36, kc: 0.50, mad: 0.50 },
+    fruit_trees: { rootDepth: 24, kc: 0.65, mad: 0.45 },
     annuals: { rootDepth: 6, kc: 0.80, mad: 0.50 },
     perennials: { rootDepth: 18, kc: 0.50, mad: 0.50 },
-    trees: { rootDepth: 36, kc: 0.50, mad: 0.50 },
-    xeriscape: { rootDepth: 12, kc: 0.30, mad: 0.60 },
     vegetable: { rootDepth: 12, kc: 0.75, mad: 0.40 },
+    native_plants: { rootDepth: 18, kc: 0.35, mad: 0.55 },
+    xeriscape: { rootDepth: 12, kc: 0.30, mad: 0.60 },
 };
 /**
  * Calculate the smart irrigation duration for a zone.
@@ -88,5 +91,153 @@ export async function calculateSmartDuration(zone, fallbackMinutes) {
         et0In,
         heatWaveBoost,
     };
+}
+// ── Smart Schedule Recommendation ─────────────────────────
+// Watering frequency per plant type (days per week)
+// Based on university extension program recommendations
+const WATERING_FREQUENCY = {
+    cool_turf: { days: ['mon', 'wed', 'fri'], label: '3x/week' },
+    warm_turf: { days: ['tue', 'fri'], label: '2x/week' },
+    evergreen_trees: { days: ['mon', 'wed', 'fri', 'sun'], label: '4x/week (establishing)' },
+    shade_trees: { days: ['mon', 'thu'], label: '2x/week' },
+    fruit_trees: { days: ['mon', 'wed', 'fri'], label: '3x/week' },
+    annuals: { days: ['mon', 'wed', 'fri', 'sun'], label: '4x/week' },
+    perennials: { days: ['tue', 'fri'], label: '2x/week' },
+    vegetable: { days: ['mon', 'wed', 'fri', 'sun'], label: '4x/week' },
+    native_plants: { days: ['wed'], label: '1x/week' },
+    xeriscape: { days: ['wed'], label: '1x/week' },
+};
+// Preferred start mode per plant type
+const PREFERRED_START = {
+    cool_turf: { mode: 'sunrise', offset: -30, fixedTime: '06:00' }, // before sunrise to reduce evaporation
+    warm_turf: { mode: 'sunrise', offset: -30, fixedTime: '06:00' },
+    evergreen_trees: { mode: 'sunrise', offset: 0, fixedTime: '06:30' },
+    shade_trees: { mode: 'sunrise', offset: 0, fixedTime: '06:30' },
+    fruit_trees: { mode: 'sunrise', offset: -15, fixedTime: '06:00' },
+    annuals: { mode: 'sunrise', offset: -15, fixedTime: '06:00' },
+    perennials: { mode: 'sunrise', offset: 0, fixedTime: '06:30' },
+    vegetable: { mode: 'sunrise', offset: -15, fixedTime: '06:00' }, // early to keep leaves dry
+    native_plants: { mode: 'sunrise', offset: 30, fixedTime: '07:00' },
+    xeriscape: { mode: 'sunrise', offset: 30, fixedTime: '07:00' },
+};
+/**
+ * Calculate how many minutes of existing smart schedules could overlap.
+ * Returns the total offset needed so this zone starts after all others finish.
+ * Uses a 2-minute buffer between zones for valve switching.
+ */
+async function calculateStaggerOffset(zone) {
+    const allSchedules = await db.getSchedules();
+    const smartSchedules = allSchedules.filter(s => s.smart && s.zone !== zone);
+    if (smartSchedules.length === 0)
+        return 0;
+    // Sum up all existing smart schedule durations + 2 min buffer each
+    const BUFFER_MINUTES = 2;
+    let totalOffset = 0;
+    for (const s of smartSchedules) {
+        totalOffset += s.durationMinutes + BUFFER_MINUTES;
+    }
+    return totalOffset;
+}
+/**
+ * Generate a smart schedule for a zone based on its soil/plant profile.
+ * Staggers start time so zones don't overlap (low pressure protection).
+ * Returns null if the zone doesn't have a complete profile.
+ */
+export async function generateSmartSchedule(zone) {
+    const zones = await db.getZones();
+    const zoneRow = zones.find(z => z.zone === zone);
+    if (!zoneRow?.soil_type || !zoneRow?.plant_type)
+        return null;
+    const plant = PLANT_DATA[zoneRow.plant_type];
+    const soil = SOIL_DATA[zoneRow.soil_type];
+    if (!plant || !soil)
+        return null;
+    const freq = WATERING_FREQUENCY[zoneRow.plant_type] ?? WATERING_FREQUENCY.cool_turf;
+    const start = PREFERRED_START[zoneRow.plant_type] ?? PREFERRED_START.cool_turf;
+    // Calculate a baseline duration using soil-budget method (ET₀ adjusts at runtime)
+    const waterNeededIn = soil.awc * (plant.rootDepth / 12) * plant.mad;
+    const baseMinutes = Math.max(1, Math.min(120, Math.round((waterNeededIn / soil.intakeRate) * 60)));
+    // Stagger: offset this zone's start so it runs after all other smart schedules
+    const staggerOffset = await calculateStaggerOffset(zone);
+    const effectiveOffset = start.offset + staggerOffset;
+    const schedule = {
+        zone,
+        name: `Smart — ${zoneRow.name}`,
+        startTime: start.fixedTime,
+        startMode: start.mode,
+        startOffset: effectiveOffset,
+        durationMinutes: baseMinutes,
+        days: freq.days.join(','),
+        enabled: true,
+        rainSkip: true,
+        priority: false,
+        smart: true,
+    };
+    const plantLabel = zoneRow.plant_type.replace(/_/g, ' ');
+    const staggerNote = staggerOffset > 0 ? `, staggered +${staggerOffset}min` : '';
+    const reason = `${plantLabel} in ${zoneRow.soil_type.replace(/_/g, ' ')} soil — ${freq.label}, ${baseMinutes} min base duration (adjusted daily by ET₀)${staggerNote}`;
+    return { schedule, frequencyLabel: freq.label, reason };
+}
+/**
+ * Create or update the smart schedule for a zone.
+ * Removes any existing smart schedules for the zone first,
+ * then re-staggers all other smart schedules to avoid overlap.
+ */
+export async function applySmartSchedule(zone) {
+    // Remove existing smart schedules for this zone
+    await removeSmartSchedules(zone);
+    const recommendation = await generateSmartSchedule(zone);
+    if (!recommendation)
+        return { created: false };
+    await db.createSchedule(recommendation.schedule);
+    console.log(`[SMART] Created schedule for zone ${zone}: ${recommendation.reason}`);
+    // Re-stagger all other smart schedules to account for the new one
+    await restaggerAllSmartSchedules(zone);
+    return { created: true, schedule: recommendation };
+}
+/**
+ * Re-stagger all smart schedules so they run sequentially without overlap.
+ * Called after adding/removing a smart schedule.
+ * Optionally skip a zone that was just created (already has correct offset).
+ */
+async function restaggerAllSmartSchedules(skipZone) {
+    const allSchedules = await db.getSchedules();
+    const smartSchedules = allSchedules
+        .filter(s => s.smart)
+        .sort((a, b) => a.zone - b.zone); // deterministic order by zone number
+    const BUFFER_MINUTES = 2;
+    let cumulativeOffset = 0;
+    for (const s of smartSchedules) {
+        const zones = await db.getZones();
+        const zoneRow = zones.find(z => z.zone === s.zone);
+        if (!zoneRow?.plant_type)
+            continue;
+        const start = PREFERRED_START[zoneRow.plant_type] ?? PREFERRED_START.cool_turf;
+        const newOffset = start.offset + cumulativeOffset;
+        if (s.zone !== skipZone && s.startOffset !== newOffset) {
+            await db.updateSchedule(s.id, { startOffset: newOffset });
+        }
+        cumulativeOffset += s.durationMinutes + BUFFER_MINUTES;
+    }
+}
+/**
+ * Remove all smart schedules for a zone.
+ * Re-staggers remaining smart schedules after removal.
+ */
+export async function removeSmartSchedules(zone) {
+    const schedules = await db.getSchedules(zone);
+    let removed = 0;
+    for (const s of schedules) {
+        if (s.smart) {
+            await db.deleteSchedule(s.id);
+            removed++;
+        }
+    }
+    if (removed > 0) {
+        console.log(`[SMART] Removed ${removed} smart schedule(s) for zone ${zone}`);
+        // Re-stagger remaining schedules to close the gap
+        await restaggerAllSmartSchedules();
+    }
+    return removed;
 }
 //# sourceMappingURL=smart.js.map
