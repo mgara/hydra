@@ -3,7 +3,11 @@
 // All values stored in inches (converted to cm for display when length_unit = 'cm')
 
 export type SoilType = 'sand' | 'sandy_loam' | 'loam' | 'clay_loam' | 'silt_loam' | 'silty_clay' | 'clay';
-export type PlantType = 'cool_turf' | 'warm_turf' | 'annuals' | 'perennials' | 'trees' | 'xeriscape' | 'vegetable';
+export type PlantType =
+  | 'cool_turf' | 'warm_turf'
+  | 'annuals' | 'perennials'
+  | 'shade_trees' | 'evergreen_trees' | 'fruit_trees'
+  | 'xeriscape' | 'vegetable' | 'native_plants';
 
 export interface SoilProfile {
   key: SoilType;
@@ -20,6 +24,8 @@ export interface PlantProfile {
   kc: number;           // crop coefficient (multiply by ET₀)
   mad: number;          // management allowed depletion (fraction 0-1)
   icon: string;         // material symbol icon name
+  minZone?: number;     // minimum USDA hardiness zone (inclusive)
+  maxZone?: number;     // maximum USDA hardiness zone (inclusive)
 }
 
 export const SOIL_PROFILES: SoilProfile[] = [
@@ -33,13 +39,19 @@ export const SOIL_PROFILES: SoilProfile[] = [
 ];
 
 export const PLANT_PROFILES: PlantProfile[] = [
-  { key: 'cool_turf',   label: 'Cool Turf',          rootDepth: 6,  kc: 0.80, mad: 0.50, icon: 'grass' },
-  { key: 'warm_turf',   label: 'Warm Turf',          rootDepth: 8,  kc: 0.60, mad: 0.50, icon: 'grass' },
-  { key: 'annuals',     label: 'Annual Flowers',      rootDepth: 6,  kc: 0.80, mad: 0.50, icon: 'local_florist' },
-  { key: 'perennials',  label: 'Shrubs / Perennials', rootDepth: 18, kc: 0.50, mad: 0.50, icon: 'park' },
-  { key: 'trees',       label: 'Trees',               rootDepth: 36, kc: 0.50, mad: 0.50, icon: 'forest' },
-  { key: 'xeriscape',   label: 'Desert / Xeriscape',  rootDepth: 12, kc: 0.30, mad: 0.60, icon: 'spa' },
-  { key: 'vegetable',   label: 'Vegetable Garden',    rootDepth: 12, kc: 0.75, mad: 0.40, icon: 'compost' },
+  // Turf — zone-dependent recommendation
+  { key: 'cool_turf',       label: 'Cool-Season Lawn',    rootDepth: 6,  kc: 0.80, mad: 0.50, icon: 'grass',         minZone: 2, maxZone: 7 },
+  { key: 'warm_turf',       label: 'Warm-Season Lawn',    rootDepth: 8,  kc: 0.60, mad: 0.50, icon: 'grass',         minZone: 7, maxZone: 11 },
+  // Trees
+  { key: 'evergreen_trees', label: 'Evergreen / Cedar',   rootDepth: 18, kc: 0.45, mad: 0.50, icon: 'park',          minZone: 2, maxZone: 8 },
+  { key: 'shade_trees',     label: 'Shade Trees',         rootDepth: 36, kc: 0.50, mad: 0.50, icon: 'forest',        minZone: 3, maxZone: 10 },
+  { key: 'fruit_trees',     label: 'Fruit Trees',         rootDepth: 24, kc: 0.65, mad: 0.45, icon: 'nutrition',     minZone: 4, maxZone: 10 },
+  // Garden & landscape
+  { key: 'annuals',         label: 'Annual Flowers',      rootDepth: 6,  kc: 0.80, mad: 0.50, icon: 'local_florist' },
+  { key: 'perennials',      label: 'Shrubs / Perennials', rootDepth: 18, kc: 0.50, mad: 0.50, icon: 'eco' },
+  { key: 'vegetable',       label: 'Vegetable Garden',    rootDepth: 12, kc: 0.75, mad: 0.40, icon: 'compost' },
+  { key: 'native_plants',   label: 'Native Plants',       rootDepth: 18, kc: 0.35, mad: 0.55, icon: 'psychiatry' },
+  { key: 'xeriscape',       label: 'Desert / Xeriscape',  rootDepth: 12, kc: 0.30, mad: 0.60, icon: 'spa',           minZone: 7, maxZone: 13 },
 ];
 
 export function getSoilProfile(key: string | null): SoilProfile | null {
@@ -48,6 +60,28 @@ export function getSoilProfile(key: string | null): SoilProfile | null {
 
 export function getPlantProfile(key: string | null): PlantProfile | null {
   return PLANT_PROFILES.find(p => p.key === key) ?? null;
+}
+
+/** Filter plant profiles by hardiness zone compatibility */
+export function getPlantProfilesForZone(zoneNumber: number | null): {
+  recommended: PlantProfile[];
+  other: PlantProfile[];
+} {
+  if (zoneNumber === null) return { recommended: PLANT_PROFILES, other: [] };
+
+  const recommended: PlantProfile[] = [];
+  const other: PlantProfile[] = [];
+
+  for (const p of PLANT_PROFILES) {
+    const inRange = (!p.minZone || zoneNumber >= p.minZone) && (!p.maxZone || zoneNumber <= p.maxZone);
+    if (inRange) {
+      recommended.push(p);
+    } else {
+      other.push(p);
+    }
+  }
+
+  return { recommended, other };
 }
 
 // Unit conversion helpers
