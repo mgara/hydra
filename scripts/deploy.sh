@@ -139,6 +139,51 @@ if [ "$ON_PI" = true ]; then
     echo -e "\n${DIM}    i2c-bus not installed, skipping native build${NC}"
   fi
 
+  # ── bleno native module ──────────────────────────
+  BLENO_CACHE="/home/pi/.cache/hydra-bleno"
+  BLENO_ABI_FILE="$BLENO_CACHE/abi"
+  BLENO_BINARY="$BLENO_CACHE/$NODE_ABI/binding.node"
+  BLENO_SOURCE="node_modules/@abandonware/bleno"
+  BLENO_TARGETS=(
+    "node_modules/@abandonware/bleno/build/Release"
+  )
+
+  BLENO_INSTALLED_ABI=$(cat "$BLENO_ABI_FILE" 2>/dev/null || echo "")
+
+  if [ -d "$BLENO_SOURCE" ]; then
+    if [ ! -f "$BLENO_BINARY" ] || [ "$BLENO_INSTALLED_ABI" != "$NODE_ABI" ]; then
+      echo -e "\n${CYAN}    bleno cached for: ${BLENO_INSTALLED_ABI:-none}${NC}"
+      echo -e "${CYAN}    node running:     $NODE_ABI ($NODE_VERSION)${NC}"
+
+      step_start "Building bleno natively (node-gyp, --jobs=1)"
+      cd "$BLENO_SOURCE" && npx --yes node-gyp rebuild --jobs=1 2>&1
+      cd "$HYDRA_DIR"
+
+      if [ -f "$BLENO_SOURCE/build/Release/binding.node" ]; then
+        mkdir -p "$BLENO_CACHE/$NODE_ABI"
+        cp "$BLENO_SOURCE/build/Release/binding.node" "$BLENO_BINARY"
+        echo "$NODE_ABI" > "$BLENO_ABI_FILE"
+        echo -e "${DIM}    cached to $BLENO_BINARY${NC}"
+      else
+        echo -e "${RED}    ⚠ bleno build failed — BLE will not work${NC}"
+      fi
+      step_done
+    else
+      echo -e "\n${DIM}    bleno binding.node cached and up to date ($NODE_ABI)${NC}"
+    fi
+
+    if [ -f "$BLENO_BINARY" ]; then
+      step_start "Restoring bleno binding.node ($NODE_ABI)"
+      for target in "${BLENO_TARGETS[@]}"; do
+        mkdir -p "$target"
+        cp "$BLENO_BINARY" "$target/"
+      done
+      step_done
+    fi
+  else
+    echo -e "\n${DIM}    bleno not installed, skipping native build${NC}"
+  fi
+
   # ── Start PM2 ──────────────────────────────────────
   step_start "Starting PM2"
   sudo pm2 start ecosystem.config.cjs
