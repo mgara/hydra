@@ -142,7 +142,7 @@ if [ "$ON_PI" = true ]; then
   # ── bleno native module ──────────────────────────
   BLENO_CACHE="/home/pi/.cache/hydra-bleno"
   BLENO_ABI_FILE="$BLENO_CACHE/abi"
-  BLENO_BINARY="$BLENO_CACHE/$NODE_ABI/binding.node"
+  BLENO_BINARY="$BLENO_CACHE/$NODE_ABI/bleno.node"
   BLENO_SOURCE="node_modules/@abandonware/bleno"
   BLENO_TARGETS=(
     "node_modules/@abandonware/bleno/build/Release"
@@ -159,9 +159,9 @@ if [ "$ON_PI" = true ]; then
       cd "$BLENO_SOURCE" && npx --yes node-gyp rebuild --jobs=1 2>&1
       cd "$HYDRA_DIR"
 
-      if [ -f "$BLENO_SOURCE/build/Release/binding.node" ]; then
+      if [ -f "$BLENO_SOURCE/build/Release/bleno.node" ]; then
         mkdir -p "$BLENO_CACHE/$NODE_ABI"
-        cp "$BLENO_SOURCE/build/Release/binding.node" "$BLENO_BINARY"
+        cp "$BLENO_SOURCE/build/Release/bleno.node" "$BLENO_BINARY"
         echo "$NODE_ABI" > "$BLENO_ABI_FILE"
         echo -e "${DIM}    cached to $BLENO_BINARY${NC}"
       else
@@ -169,11 +169,11 @@ if [ "$ON_PI" = true ]; then
       fi
       step_done
     else
-      echo -e "\n${DIM}    bleno binding.node cached and up to date ($NODE_ABI)${NC}"
+      echo -e "\n${DIM}    bleno bleno.node cached and up to date ($NODE_ABI)${NC}"
     fi
 
     if [ -f "$BLENO_BINARY" ]; then
-      step_start "Restoring bleno binding.node ($NODE_ABI)"
+      step_start "Restoring bleno bleno.node ($NODE_ABI)"
       for target in "${BLENO_TARGETS[@]}"; do
         mkdir -p "$target"
         cp "$BLENO_BINARY" "$target/"
