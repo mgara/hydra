@@ -1,24 +1,40 @@
 import { createClient } from '@libsql/client';
+import { existsSync, unlinkSync } from 'node:fs';
 import { initSchema } from './schema.js';
 let client = null;
 export async function initDb() {
-    client = createClient({
-        url: 'file:./data/hydra.db',
-        syncUrl: process.env.TURSO_URL,
-        authToken: process.env.TURSO_TOKEN,
-        syncInterval: 60,
-    });
-    // PRAGMAs not supported in Turso embedded replica mode
-    if (!process.env.TURSO_URL) {
+    const tursoUrl = process.env.TURSO_URL;
+    const tursoToken = process.env.TURSO_TOKEN;
+    const dbPath = './data/hydra.db';
+    const metadataPath = `${dbPath}-metadata`;
+    // If switching to Turso sync but stale metadata exists, remove it so libsql can start fresh
+    if (tursoUrl && existsSync(dbPath) && !existsSync(metadataPath)) {
+        console.warn('[DB] Removing stale db for clean Turso sync — existing local data will be re-synced from primary');
+        unlinkSync(dbPath);
+    }
+    try {
+        client = createClient({
+            url: `file:${dbPath}`,
+            syncUrl: tursoUrl,
+            authToken: tursoToken,
+            syncInterval: 60,
+        });
+        if (tursoUrl) {
+            await client.sync();
+        }
+    }
+    catch (err) {
+        // Turso unreachable or sync failed — fall back to local-only
+        console.warn(`[DB] Turso sync failed, falling back to local-only:`, err.message);
+        client = createClient({ url: `file:${dbPath}` });
+    }
+    if (!tursoUrl) {
         await client.execute('PRAGMA journal_mode = WAL');
         await client.execute('PRAGMA foreign_keys = ON');
     }
     await initSchema(client);
-    // In embedded replica mode, sync the local file with the primary
-    // so that reads reflect the schema/seed writes we just sent to the primary
-    if (process.env.TURSO_URL) {
-        await client.sync();
-        console.log('[DB] Connected (libsql + Turso sync) — local replica synced');
+    if (tursoUrl) {
+        console.log('[DB] Connected (libsql + Turso sync)');
     }
     else {
         console.log('[DB] Connected (libsql local-only)');
