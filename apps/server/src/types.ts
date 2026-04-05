@@ -28,6 +28,7 @@ export interface Schedule {
   enabled: boolean;
   rainSkip: boolean;
   priority: boolean;       // high-priority skips rain delay
+  smart: boolean;          // true = duration auto-calculated from zone profile + ET₀
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +44,7 @@ export interface ScheduleInput {
   enabled?: boolean;
   rainSkip?: boolean;
   priority?: boolean;
+  smart?: boolean;
 }
 
 // ── Log Types ───────────────────────────────────────────
