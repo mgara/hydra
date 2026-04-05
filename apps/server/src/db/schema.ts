@@ -79,6 +79,7 @@ async function createFreshSchema(db: Client): Promise<void> {
       enabled           INTEGER NOT NULL DEFAULT 1,
       rain_skip         INTEGER NOT NULL DEFAULT 1,
       priority          INTEGER NOT NULL DEFAULT 0,
+      smart             INTEGER NOT NULL DEFAULT 0,
       created_at        TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -317,6 +318,7 @@ async function migrateLegacySchema(db: Client): Promise<void> {
       enabled           INTEGER NOT NULL DEFAULT 1,
       rain_skip         INTEGER NOT NULL DEFAULT 1,
       priority          INTEGER NOT NULL DEFAULT 0,
+      smart             INTEGER NOT NULL DEFAULT 0,
       created_at        TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -406,6 +408,10 @@ async function addSolarSchedulingColumns(db: Client): Promise<void> {
     if (!columns.includes('start_offset')) {
       await db.execute('ALTER TABLE schedules ADD COLUMN start_offset INTEGER NOT NULL DEFAULT 0');
       console.log('[DB] Added start_offset column to schedules');
+    }
+    if (!columns.includes('smart')) {
+      await db.execute('ALTER TABLE schedules ADD COLUMN smart INTEGER NOT NULL DEFAULT 0');
+      console.log('[DB] Added smart column to schedules');
     }
   } catch (err) {
     console.error('[DB] Solar scheduling migration error:', err);
