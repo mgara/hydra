@@ -1,4 +1,4 @@
-import { getDb, batchWriteThenRead } from './index.js';
+import { getDb, batchWriteThenRead, replicateToRemote } from './index.js';
 import type { Schedule, ScheduleInput, ExecutionLog, Alert, AlertSeverity, SystemConfig, GpioAssignment, GpioPinConfig, SetupInput, StartMode } from '../types.js';
 import type { Row } from '@libsql/client';
 
@@ -409,11 +409,13 @@ export async function getSetting(key: string): Promise<string | undefined> {
 }
 
 export async function setSetting(key: string, value: string) {
-  await getDb().execute({
+  const stmt = {
     sql: `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))
           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = datetime('now')`,
-    args: [key, value, value],
-  });
+    args: [key, value, value] as (string | number | null)[],
+  };
+  await getDb().execute(stmt);
+  replicateToRemote([stmt]);
 }
 
 export async function getAllSettings(): Promise<Record<string, string>> {

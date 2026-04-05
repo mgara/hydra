@@ -1,63 +1,91 @@
 import { createClient, type Client } from '@libsql/client';
-import { existsSync, unlinkSync } from 'node:fs';
 import { initSchema } from './schema.js';
 
+/** Local-only client — all reads and writes go here instantly */
 let client: Client | null = null;
+
+/** Remote Turso client — fire-and-forget cloud backup */
+let remoteClient: Client | null = null;
 
 export async function initDb(): Promise<void> {
   const tursoUrl = process.env.TURSO_URL;
   const tursoToken = process.env.TURSO_TOKEN;
   const dbPath = './data/hydra.db';
 
-  if (tursoUrl) {
-    try {
-      // If db exists without metadata, libsql can't open in sync mode.
-      // Try as-is first; if it fails, remove only the metadata-related files and retry.
-      client = createClient({
-        url: `file:${dbPath}`,
-        syncUrl: tursoUrl,
-        authToken: tursoToken,
-        syncInterval: 60,
-      });
-      await client.sync();
-    } catch (err) {
-      const msg = (err as Error).message;
-      if (msg.includes('metadata file does not')) {
-        // Clean up stale WAL/SHM/metadata so libsql can re-init sync alongside existing db
-        console.warn('[DB] Cleaning stale sync state — preserving database, removing WAL/SHM files');
-        for (const suffix of ['-wal', '-shm', '-metadata']) {
-          const f = `${dbPath}${suffix}`;
-          if (existsSync(f)) unlinkSync(f);
-        }
-        try {
-          client = createClient({
-            url: `file:${dbPath}`,
-            syncUrl: tursoUrl,
-            authToken: tursoToken,
-            syncInterval: 60,
-          });
-          await client.sync();
-        } catch (retryErr) {
-          console.warn(`[DB] Turso sync failed after cleanup, falling back to local-only:`, (retryErr as Error).message);
-          client = createClient({ url: `file:${dbPath}` });
-        }
-      } else {
-        console.warn(`[DB] Turso sync failed, falling back to local-only:`, msg);
-        client = createClient({ url: `file:${dbPath}` });
-      }
-    }
-  } else {
-    client = createClient({ url: `file:${dbPath}` });
-    await client.execute('PRAGMA journal_mode = WAL');
-    await client.execute('PRAGMA foreign_keys = ON');
-  }
+  // Always use a local-only client for app operations (instant reads/writes)
+  client = createClient({ url: `file:${dbPath}` });
+  await client.execute('PRAGMA journal_mode = WAL');
+  await client.execute('PRAGMA foreign_keys = ON');
   await initSchema(client);
+  console.log('[DB] Connected (libsql local)');
 
-  if (tursoUrl) {
-    console.log('[DB] Connected (libsql + Turso sync)');
-  } else {
-    console.log('[DB] Connected (libsql local-only)');
+  // If Turso is configured, create a remote client for background cloud backup
+  if (tursoUrl && tursoToken) {
+    try {
+      remoteClient = createClient({ url: tursoUrl, authToken: tursoToken });
+      // Verify connectivity
+      await remoteClient.execute('SELECT 1');
+      console.log('[DB] Turso cloud backup enabled');
+
+      // Initial sync: push local schema + data to Turso
+      syncToRemote().catch(err => {
+        console.warn('[DB] Initial Turso sync failed:', err.message);
+      });
+
+      // Background sync every 60s
+      setInterval(() => {
+        syncToRemote().catch(err => {
+          console.warn('[DB] Turso background sync failed:', err.message);
+        });
+      }, 60_000);
+    } catch (err) {
+      console.warn('[DB] Turso connection failed — cloud backup disabled:', (err as Error).message);
+      remoteClient = null;
+    }
   }
+}
+
+/**
+ * Fire-and-forget: replay a write to the remote Turso client.
+ * Called after every local write. Never blocks the caller.
+ */
+export function replicateToRemote(
+  stmts: { sql: string; args: (string | number | null)[] }[],
+): void {
+  if (!remoteClient) return;
+  remoteClient.batch(stmts, 'write').catch(err => {
+    console.warn('[DB] Turso replicate failed:', err.message);
+  });
+}
+
+/** Full sync: push all settings, zones, schedules, and GPIO assignments to Turso */
+async function syncToRemote(): Promise<void> {
+  if (!remoteClient || !client) return;
+
+  // Ensure remote has the schema
+  await initSchema(remoteClient);
+
+  // Sync key tables
+  const tables = ['settings', 'zones', 'schedules', 'gpio_assignments', 'system_config'];
+  for (const table of tables) {
+    try {
+      const rows = await client.execute(`SELECT * FROM ${table}`);
+      if (rows.rows.length === 0) continue;
+
+      const cols = rows.columns;
+      const placeholders = cols.map(() => '?').join(', ');
+      const stmts = rows.rows.map(row => ({
+        sql: `INSERT OR REPLACE INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`,
+        args: cols.map(c => (row[c] as string | number | null) ?? null),
+      }));
+
+      await remoteClient.batch(stmts, 'write');
+    } catch (err) {
+      console.warn(`[DB] Turso sync table "${table}" failed:`, (err as Error).message);
+    }
+  }
+
+  console.log('[DB] Turso background sync complete');
 }
 
 export function getDb(): Client {
@@ -66,8 +94,8 @@ export function getDb(): Client {
 }
 
 /**
- * Write settings and read them back in a single local batch.
- * Turso sync happens in the background via syncInterval.
+ * Write and read back in a single local batch.
+ * Also fire-and-forget replicates writes to Turso.
  */
 export async function batchWriteThenRead(
   writes: { sql: string; args: (string | number | null)[] }[],
@@ -78,10 +106,18 @@ export async function batchWriteThenRead(
     { sql: readSql, args: [] as (string | number | null)[] },
   ];
   const results = await getDb().batch(stmts);
+
+  // Fire-and-forget cloud backup
+  replicateToRemote(writes);
+
   return results[results.length - 1];
 }
 
 export function closeDb(): void {
+  if (remoteClient) {
+    remoteClient.close();
+    remoteClient = null;
+  }
   if (client) {
     client.close();
     client = null;
