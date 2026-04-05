@@ -21,7 +21,11 @@ if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "armv7l" ]; then
 fi
 
 if [ "$ON_PI" = true ]; then
-  # ── Running on Pi: pull, install deps, restart ────
+  # ── Running on Pi: stop, pull, install deps, restart ──
+  step_start "Stopping and removing PM2 process"
+  sudo pm2 delete hydra 2>/dev/null || true
+  step_done
+
   step_start "Pulling latest from GitHub"
   git pull --ff-only
   step_done
