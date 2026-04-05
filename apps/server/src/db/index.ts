@@ -8,7 +8,6 @@ export async function initDb(): Promise<void> {
   const tursoUrl = process.env.TURSO_URL;
   const tursoToken = process.env.TURSO_TOKEN;
   const dbPath = './data/hydra.db';
-  const metadataPath = `${dbPath}-metadata`;
 
   if (tursoUrl) {
     try {

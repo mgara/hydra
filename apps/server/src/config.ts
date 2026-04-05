@@ -32,7 +32,7 @@ export const MAX_RUN_MINUTES = 120;
 export const FLOW_SENSOR_PULSES_PER_GALLON = 450; // calibrate for your sensor
 
 // OLED Display
-export const OLED_ENABLED = process.env.HYDRA_SIM === '1' || IS_PRODUCTION;
+export const OLED_ENABLED = process.env.OLED_ENABLED === 'false' ? false : (process.env.HYDRA_SIM === '1' || IS_PRODUCTION);
 export const OLED_DRIVER = (process.env.HYDRA_SIM === '1' ? 'simulator' : IS_PRODUCTION ? 'ssd1306' : 'simulator') as 'simulator' | 'ssd1306';
 export const OLED_I2C_ADDRESS = parseInt(process.env.OLED_I2C_ADDRESS || '0x3C', 16);
 export const OLED_I2C_BUS = parseInt(process.env.OLED_I2C_BUS || '1', 10);

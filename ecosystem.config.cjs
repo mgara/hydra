@@ -32,6 +32,7 @@ module.exports = {
         MQTT_BROKER: env('MQTT_BROKER'),
         MQTT_USER: env('MQTT_USER'),
         MQTT_PASS: env('MQTT_PASS'),
+        OLED_ENABLED: env('OLED_ENABLED', 'false'),
       },
       exec_mode: 'fork',
       instances: 1,
