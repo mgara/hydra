@@ -1,4 +1,4 @@
-import { getDb, batchWriteThenRead, replicateToRemote } from './index.js';
+import { getDb, batchWriteThenRead } from './index.js';
 import type { Schedule, ScheduleInput, ExecutionLog, Alert, AlertSeverity, SystemConfig, GpioAssignment, GpioPinConfig, SetupInput, StartMode } from '../types.js';
 import type { Row } from '@libsql/client';
 
@@ -409,13 +409,11 @@ export async function getSetting(key: string): Promise<string | undefined> {
 }
 
 export async function setSetting(key: string, value: string) {
-  const stmt = {
+  await getDb().execute({
     sql: `INSERT INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now'))
           ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = datetime('now')`,
-    args: [key, value, value] as (string | number | null)[],
-  };
-  await getDb().execute(stmt);
-  replicateToRemote([stmt]);
+    args: [key, value, value],
+  });
 }
 
 export async function getAllSettings(): Promise<Record<string, string>> {
@@ -425,8 +423,7 @@ export async function getAllSettings(): Promise<Record<string, string>> {
 
 
 /**
- * Write multiple settings and read them all back in a single batch (primary round-trip).
- * Ensures read-your-writes consistency with Turso embedded replicas.
+ * Write multiple settings and read them all back in a single batch.
  */
 export async function setSettingsAndReadAll(
   updates: [key: string, value: string][],

@@ -383,8 +383,7 @@ export async function getAllSettings() {
     return Object.fromEntries(result.rows.map(r => [r.k, r.value]));
 }
 /**
- * Write multiple settings and read them all back in a single batch (primary round-trip).
- * Ensures read-your-writes consistency with Turso embedded replicas.
+ * Write multiple settings and read them all back in a single batch.
  */
 export async function setSettingsAndReadAll(updates) {
     const writes = updates.map(([key, value]) => ({

@@ -41,7 +41,7 @@ export function registerFlowRoutes(app, flowMonitor, gpio) {
                 updates.push([dbKey, String(value)]);
             }
         }
-        // Write + read in a single batch to the primary (Turso read-your-writes)
+        // Write + read in a single batch
         const all = await db.setSettingsAndReadAll(updates);
         // Reload settings in the monitor
         await flowMonitor.reloadSettings();

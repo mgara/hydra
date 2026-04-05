@@ -293,8 +293,8 @@ async function startOperationalMode(): Promise<void> {
           await db.resetSetup();
           await transitionToSetup();
         },
-        onCloudToken: async (token) => {
-          await db.setSetting('turso_token', token);
+        onCloudToken: async (_token) => {
+          // Cloud sync removed — placeholder for future implementation
         },
         getZoneCount: () => zoneManager!.getZoneCount(),
         getZoneNames: () => {

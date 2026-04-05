@@ -56,8 +56,7 @@ export declare function getSetting(key: string): Promise<string | undefined>;
 export declare function setSetting(key: string, value: string): Promise<void>;
 export declare function getAllSettings(): Promise<Record<string, string>>;
 /**
- * Write multiple settings and read them all back in a single batch (primary round-trip).
- * Ensures read-your-writes consistency with Turso embedded replicas.
+ * Write multiple settings and read them all back in a single batch.
  */
 export declare function setSettingsAndReadAll(updates: [key: string, value: string][]): Promise<Record<string, string>>;
 export interface FlowReading {

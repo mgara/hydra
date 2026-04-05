@@ -2,8 +2,7 @@ import { type Client } from '@libsql/client';
 export declare function initDb(): Promise<void>;
 export declare function getDb(): Client;
 /**
- * Write settings and read them back in a single local batch.
- * Turso sync happens in the background via syncInterval.
+ * Write and read back in a single local batch.
  */
 export declare function batchWriteThenRead(writes: {
     sql: string;

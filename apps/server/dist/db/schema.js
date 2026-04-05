@@ -200,10 +200,7 @@ async function detectLegacySchema(db) {
 /** Migrate legacy 7-zone database to dynamic schema */
 async function migrateLegacySchema(db) {
     console.log('[DB] Detected legacy schema, migrating to dynamic zone system...');
-    // Disable foreign keys during migration (not supported in Turso sync mode)
-    if (!process.env.TURSO_URL) {
-        await db.execute('PRAGMA foreign_keys = OFF');
-    }
+    await db.execute('PRAGMA foreign_keys = OFF');
     try {
         // 1. Recreate zones table without CHECK(1-7), adding new columns
         await db.executeMultiple(`
@@ -275,10 +272,7 @@ async function migrateLegacySchema(db) {
         console.log('[DB] Legacy migration complete — 7 zones preserved with GPIO assignments');
     }
     finally {
-        // Re-enable foreign keys
-        if (!process.env.TURSO_URL) {
-            await db.execute('PRAGMA foreign_keys = ON');
-        }
+        await db.execute('PRAGMA foreign_keys = ON');
     }
     // Ensure remaining tables exist (alerts, settings, etc.)
     await db.executeMultiple(`

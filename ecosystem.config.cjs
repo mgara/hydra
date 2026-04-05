@@ -27,8 +27,6 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: '3000',
         MATTER_ENABLED: env('MATTER_ENABLED', 'true'),
-        TURSO_TOKEN: env('TURSO_TOKEN'),
-        TURSO_URL: env('TURSO_URL'),
         MQTT_BROKER: env('MQTT_BROKER'),
         MQTT_USER: env('MQTT_USER'),
         MQTT_PASS: env('MQTT_PASS'),
