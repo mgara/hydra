@@ -111,7 +111,7 @@ else
   step_done
 
   step_start "Committing build artifacts"
-  git add apps/server/dist apps/web/dist
+  git add -A apps/server/dist apps/web/dist
   if git diff --cached --quiet; then
     echo -e "${DIM}    no build changes${NC}"
   else
