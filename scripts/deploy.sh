@@ -60,7 +60,6 @@ if [ "$ON_PI" = true ]; then
   PIGPIO_SOURCE="node_modules/pigpio"
   PIGPIO_TARGETS=(
     "node_modules/pigpio/build/Release"
-    "apps/server/node_modules/pigpio/build/Release"
   )
 
   INSTALLED_ABI=$(cat "$PIGPIO_ABI_FILE" 2>/dev/null || echo "")
@@ -102,7 +101,6 @@ if [ "$ON_PI" = true ]; then
   I2C_SOURCE="node_modules/i2c-bus"
   I2C_TARGETS=(
     "node_modules/i2c-bus/build/Release"
-    "apps/server/node_modules/i2c-bus/build/Release"
   )
 
   I2C_INSTALLED_ABI=$(cat "$I2C_ABI_FILE" 2>/dev/null || echo "")
