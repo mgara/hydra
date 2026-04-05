@@ -143,6 +143,24 @@ export interface SmartDuration {
   heatWaveBoost: number;
 }
 
+// ── Hardiness Zone ───────────────────────────────────────
+
+export interface HardinessInfo {
+  zone: string | null;
+  label: string | null;
+  minTempF: number | null;
+  auto: boolean;
+  growingSeasonStart: string | null;
+  growingSeasonEnd: string | null;
+  recommendedPlantTypes: string[];
+  allZones?: { code: string; label: string }[];
+}
+
+export const getHardinessZone = () => request<HardinessInfo>('/zones/hardiness');
+export const detectHardinessZone = () => request<HardinessInfo>('/zones/hardiness/detect', { method: 'POST' });
+export const setHardinessZone = (zone: string) =>
+  request<HardinessInfo>('/zones/hardiness', { method: 'PUT', body: JSON.stringify({ zone }) });
+
 export const getZoneProfiles = () => request<ZoneProfile[]>('/zones/profiles');
 export const updateZoneProfile = (zone: number, body: { soilType?: string | null; plantType?: string | null; smartEnabled?: boolean }) =>
   request<{ zone: number; soilType: string | null; plantType: string | null; smartEnabled: boolean }>(`/zones/${zone}/profile`, {
@@ -167,6 +185,7 @@ export interface Schedule {
   enabled: boolean;
   rainSkip: boolean;
   priority: boolean;
+  smart: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -182,6 +201,7 @@ export interface ScheduleInput {
   enabled?: boolean;
   rainSkip?: boolean;
   priority?: boolean;
+  smart?: boolean;
 }
 
 export const getSchedules = (zone?: number) =>
