@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { updateSettings } from '@/lib/api';
+import { updateSettings, detectHardinessZone } from '@/lib/api';
 import { Icon } from './Icon';
 
 interface GeoResult {
@@ -69,6 +69,8 @@ export function LocationPicker({ currentName, currentLat, currentLon, onUpdate }
     setQuery('');
     setResults([]);
     setShowResults(false);
+    // Auto-detect hardiness zone after location change
+    detectHardinessZone().catch(() => {});
     onUpdate();
   };
 
@@ -101,6 +103,8 @@ export function LocationPicker({ currentName, currentLat, currentLon, onUpdate }
           weather_location_name: name,
         });
         setLocating(false);
+        // Auto-detect hardiness zone after location change
+        detectHardinessZone().catch(() => {});
         onUpdate();
       },
       (err) => {
