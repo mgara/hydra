@@ -211,6 +211,14 @@ else
   step_start "Pushing to GitHub"
   git push
   step_done
+
+  # ── SSH to Pi: pull + deploy ──────────────────────
+  PI_HOST="${PI_HOST:-pi@hydra.local}"
+  PI_DIR="${PI_DIR:-/home/pi/hydra}"
+
+  step_start "Deploying on Pi ($PI_HOST)"
+  ssh -o ConnectTimeout=10 "$PI_HOST" "cd $PI_DIR && git pull --ff-only && ./scripts/deploy.sh"
+  step_done
 fi
 
 echo -e "\n${GREEN}==> Deploy complete! ($(( SECONDS - DEPLOY_START ))s total)${NC}"
