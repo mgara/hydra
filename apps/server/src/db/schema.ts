@@ -186,7 +186,6 @@ async function createFreshSchema(db: Client): Promise<void> {
       sql: 'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
       args: [key, value],
     })),
-    'write',
   );
 
   // Clean up any corrupted rows (e.g. key='undefined' from sync issues)

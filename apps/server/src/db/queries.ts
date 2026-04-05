@@ -91,7 +91,6 @@ export async function executeSetup(
       sql: 'INSERT INTO gpio_assignments (role, pin, zone, label) VALUES (?, ?, ?, ?)',
       args: [a.role, a.pin, a.zone, a.label],
     })),
-    'write',
   );
 
   // Create zone rows
@@ -128,7 +127,6 @@ export async function executeSetup(
       sql: 'INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)',
       args: [key, value],
     })),
-    'write',
   );
 
   console.log(`[DB] Setup complete — ${input.zoneCount} zones configured`);
