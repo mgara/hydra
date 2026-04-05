@@ -8,7 +8,7 @@ import { LocationPicker } from '@/components/LocationPicker';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { THEMES, useTheme } from '@/lib/theme';
-import { SOIL_PROFILES, PLANT_PROFILES, getSoilProfile, getPlantProfile, formatRate, formatLength } from '@/lib/zone-profiles';
+import { SOIL_PROFILES, PLANT_PROFILES, getSoilProfile, getPlantProfile, getPlantProfilesForZone, formatRate, formatLength } from '@/lib/zone-profiles';
 
 function useHasBg() {
   const { theme } = useTheme();
@@ -46,6 +46,9 @@ export function Settings() {
 
       {/* Units */}
       <UnitsCard settings={settings} onUpdate={refetch} />
+
+      {/* Hardiness Zone */}
+      <HardinessZoneCard tempUnit={(settings?.temp_unit as 'F' | 'C') ?? 'F'} />
 
       {/* Zone Profiles — soil type + plant type */}
       <ZoneProfilesCard lengthUnit={(settings?.length_unit as 'in' | 'cm') || 'in'} />
@@ -649,7 +652,11 @@ function ZoneNameEditor({ zone, name, onRename }: { zone: number; name: string; 
 
 function ZoneProfilesCard({ lengthUnit }: { lengthUnit: 'in' | 'cm' }) {
   const { data: profiles, refetch } = useApi(() => api.getZoneProfiles());
+  const { data: hardiness } = useApi(() => api.getHardinessZone());
   const [expandedZone, setExpandedZone] = useState<number | null>(null);
+
+  // Parse hardiness zone number for filtering (e.g. "5a" → 5)
+  const zoneNumber = hardiness?.zone ? parseInt(hardiness.zone) : null;
 
   const handleUpdate = useCallback(async (zone: number, field: 'soilType' | 'plantType', value: string | null) => {
     await api.updateZoneProfile(zone, { [field]: value || null });
@@ -761,34 +768,67 @@ function ZoneProfilesCard({ lengthUnit }: { lengthUnit: 'in' | 'cm' }) {
 
                     {/* Plant Type */}
                     <div>
-                      <p className="text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Plant Type</p>
-                      <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-                        {PLANT_PROFILES.map((pl) => (
-                          <button
-                            key={pl.key}
-                            onClick={() => handleUpdate(p.zone, 'plantType', p.plantType === pl.key ? null : pl.key)}
-                            className="flex flex-col items-center gap-1.5 rounded-lg p-2 transition-all hover:bg-surface-container"
-                          >
-                            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                              p.plantType === pl.key ? 'bg-primary/20' : 'bg-surface-container-high'
-                            }`}>
-                              <Icon name={pl.icon} size={20} className={p.plantType === pl.key ? 'text-primary' : 'text-on-surface-variant'} />
+                      <p className="text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">
+                        Plant Type
+                        {zoneNumber && <span className="normal-case tracking-normal ml-1 text-primary">(Zone {hardiness?.zone?.toUpperCase()})</span>}
+                      </p>
+                      {(() => {
+                        const { recommended, other } = getPlantProfilesForZone(zoneNumber);
+                        return (
+                          <>
+                            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                              {recommended.map((pl) => (
+                                <button
+                                  key={pl.key}
+                                  onClick={() => handleUpdate(p.zone, 'plantType', p.plantType === pl.key ? null : pl.key)}
+                                  className="flex flex-col items-center gap-1.5 rounded-lg p-2 transition-all hover:bg-surface-container"
+                                >
+                                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                                    p.plantType === pl.key ? 'bg-primary/20' : 'bg-surface-container-high'
+                                  }`}>
+                                    <Icon name={pl.icon} size={20} className={p.plantType === pl.key ? 'text-primary' : 'text-on-surface-variant'} />
+                                  </div>
+                                  <span className="text-[0.5625rem] text-on-surface-variant text-center leading-tight">{pl.label}</span>
+                                </button>
+                              ))}
+                              {p.plantType && (
+                                <button
+                                  onClick={() => handleUpdate(p.zone, 'plantType', null)}
+                                  className="flex flex-col items-center gap-1.5 rounded-lg p-2 transition-all hover:bg-surface-container"
+                                >
+                                  <div className="h-10 w-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
+                                    <Icon name="close" size={16} className="text-on-surface-variant/60" />
+                                  </div>
+                                  <span className="text-[0.5625rem] text-on-surface-variant text-center leading-tight">Clear</span>
+                                </button>
+                              )}
                             </div>
-                            <span className="text-[0.5625rem] text-on-surface-variant text-center leading-tight">{pl.label}</span>
-                          </button>
-                        ))}
-                        {p.plantType && (
-                          <button
-                            onClick={() => handleUpdate(p.zone, 'plantType', null)}
-                            className="flex flex-col items-center gap-1.5 rounded-lg p-2 transition-all hover:bg-surface-container"
-                          >
-                            <div className="h-10 w-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
-                              <Icon name="close" size={16} className="text-on-surface-variant/60" />
-                            </div>
-                            <span className="text-[0.5625rem] text-on-surface-variant text-center leading-tight">Clear</span>
-                          </button>
-                        )}
-                      </div>
+                            {other.length > 0 && (
+                              <details className="mt-2">
+                                <summary className="text-[0.625rem] text-on-surface-variant/60 cursor-pointer hover:text-on-surface-variant transition-colors">
+                                  {other.length} more (not recommended for your zone)
+                                </summary>
+                                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 mt-2 opacity-50">
+                                  {other.map((pl) => (
+                                    <button
+                                      key={pl.key}
+                                      onClick={() => handleUpdate(p.zone, 'plantType', p.plantType === pl.key ? null : pl.key)}
+                                      className="flex flex-col items-center gap-1.5 rounded-lg p-2 transition-all hover:bg-surface-container"
+                                    >
+                                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                                        p.plantType === pl.key ? 'bg-primary/20' : 'bg-surface-container-high'
+                                      }`}>
+                                        <Icon name={pl.icon} size={20} className={p.plantType === pl.key ? 'text-primary' : 'text-on-surface-variant'} />
+                                      </div>
+                                      <span className="text-[0.5625rem] text-on-surface-variant text-center leading-tight">{pl.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </details>
+                            )}
+                          </>
+                        );
+                      })()}
                       {plant && (
                         <p className="mt-2 text-xs text-on-surface-variant">
                           Root depth: <span className="text-on-surface font-medium">{formatLength(plant.rootDepth, lengthUnit)}</span>
@@ -804,7 +844,7 @@ function ZoneProfilesCard({ lengthUnit }: { lengthUnit: 'in' | 'cm' }) {
                           <p className="text-sm font-medium text-on-surface">Smart Irrigation</p>
                           <p className="text-xs text-on-surface-variant">
                             {soil && plant
-                              ? 'Auto-calculate runtime from soil + plant profile + daily evaporation'
+                              ? 'Auto-generate a weekly schedule with smart duration based on your zone profile'
                               : 'Set both soil and plant type to enable'}
                           </p>
                         </div>
@@ -829,6 +869,151 @@ function ZoneProfilesCard({ lengthUnit }: { lengthUnit: 'in' | 'cm' }) {
               </div>
             );
           })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function HardinessZoneCard({ tempUnit }: { tempUnit: 'F' | 'C' }) {
+  const { data: hardiness, refetch } = useApi(() => api.getHardinessZone());
+  const [detecting, setDetecting] = useState(false);
+  const [showOverride, setShowOverride] = useState(false);
+
+  const handleDetect = async () => {
+    setDetecting(true);
+    try {
+      await api.detectHardinessZone();
+      refetch();
+    } finally {
+      setDetecting(false);
+    }
+  };
+
+  const handleOverride = async (code: string) => {
+    await api.setHardinessZone(code);
+    setShowOverride(false);
+    refetch();
+  };
+
+  const formatTemp = (f: number) => {
+    if (tempUnit === 'C') return `${fToC(f).toFixed(0)}°C`;
+    return `${f.toFixed(0)}°F`;
+  };
+
+  /** Format the zone's temp range label respecting the user's temp unit */
+  const formatZoneLabel = (label: string) => {
+    if (tempUnit !== 'C') return label;
+    // label is like "-30°F to -25°F" — parse and convert
+    const match = label.match(/(-?\d+)°F to (-?\d+)°F/);
+    if (!match) return label;
+    return `${fToC(Number(match[1])).toFixed(0)}°C to ${fToC(Number(match[2])).toFixed(0)}°C`;
+  };
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon name="thermostat" className="text-primary" size={20} />
+        <h2 className="font-headline text-headline-md text-on-surface">Hardiness Zone</h2>
+      </div>
+      <p className="text-xs text-on-surface-variant mb-4">
+        USDA Plant Hardiness Zone based on your location's historical winter temperatures. Used to recommend appropriate plant types.
+      </p>
+
+      {hardiness?.zone ? (
+        <div className="space-y-4">
+          {/* Zone display */}
+          <div className="flex items-center gap-4 p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+            <div className="h-14 w-14 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+              <span className="font-headline text-xl text-primary font-bold">{hardiness.zone.toUpperCase()}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-label-sm uppercase tracking-widest text-on-surface-variant block">
+                {hardiness.auto ? 'Auto-detected' : 'Manual override'}
+              </span>
+              <span className="text-sm font-medium text-on-surface block">
+                {hardiness.label ? formatZoneLabel(hardiness.label) : ''}
+                {hardiness.minTempF != null && ` (observed min: ${formatTemp(hardiness.minTempF)})`}
+              </span>
+              {hardiness.growingSeasonStart && hardiness.growingSeasonEnd && (
+                <span className="text-xs text-on-surface-variant">
+                  Growing season: {hardiness.growingSeasonStart} to {hardiness.growingSeasonEnd}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Recommended plant types */}
+          {hardiness.recommendedPlantTypes.length > 0 && (
+            <div>
+              <p className="text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Recommended for your zone</p>
+              <div className="flex flex-wrap gap-2">
+                {hardiness.recommendedPlantTypes.slice(0, 6).map((key) => {
+                  const plant = PLANT_PROFILES.find(p => p.key === key);
+                  if (!plant) return null;
+                  return (
+                    <span key={key} className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1">
+                      <Icon name={plant.icon} size={14} className="text-primary" />
+                      <span className="text-xs text-primary font-medium">{plant.label}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleDetect}
+              disabled={detecting}
+              className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2 text-sm text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+            >
+              <Icon name={detecting ? 'sync' : 'autorenew'} size={16} className={detecting ? 'animate-spin' : ''} />
+              {detecting ? 'Detecting...' : 'Re-detect'}
+            </button>
+            <button
+              onClick={() => setShowOverride(!showOverride)}
+              className="flex items-center gap-2 rounded-lg bg-surface-container-high px-4 py-2 text-sm text-on-surface-variant hover:bg-surface-container-highest transition-colors"
+            >
+              <Icon name="edit" size={16} />
+              Override
+            </button>
+          </div>
+
+          {/* Override selector */}
+          {showOverride && hardiness.allZones && (
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5 p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/10 max-h-48 overflow-y-auto">
+              {hardiness.allZones.map((z) => (
+                <button
+                  key={z.code}
+                  onClick={() => handleOverride(z.code)}
+                  className={`rounded-md px-2 py-1.5 text-xs font-mono transition-colors ${
+                    z.code === hardiness.zone
+                      ? 'bg-primary/20 text-primary font-bold'
+                      : 'hover:bg-surface-container-high text-on-surface-variant'
+                  }`}
+                  title={formatZoneLabel(z.label)}
+                >
+                  {z.code.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-on-surface-variant">
+            No hardiness zone detected yet. Click below to auto-detect from your weather location.
+          </p>
+          <button
+            onClick={handleDetect}
+            disabled={detecting}
+            className="flex items-center gap-2 rounded-lg bg-primary/10 px-4 py-2.5 text-sm text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+          >
+            <Icon name={detecting ? 'sync' : 'search'} size={18} className={detecting ? 'animate-spin' : ''} />
+            {detecting ? 'Detecting...' : 'Detect Hardiness Zone'}
+          </button>
         </div>
       )}
     </Card>
@@ -934,10 +1119,43 @@ function HeatWaveCard({ settings, onUpdate }: { settings?: Record<string, string
 
 function SmartPreview({ zone, lengthUnit, soilType, plantType }: { zone: number; lengthUnit: 'in' | 'cm'; soilType: string | null; plantType: string | null }) {
   const { data } = useApi(() => api.getSmartDuration(zone), [soilType, plantType]);
+  const { data: schedules } = useApi(() => api.getSchedules(zone), [soilType, plantType]);
   if (!data) return null;
+
+  const smartSchedule = schedules?.find(s => s.smart);
+
+  const dayLabels: Record<string, string> = { mon: 'M', tue: 'T', wed: 'W', thu: 'T', fri: 'F', sat: 'S', sun: 'S' };
+  const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
   return (
     <div className="mt-2 rounded-lg bg-surface-container-high/50 p-3 space-y-1">
+      {smartSchedule && (
+        <>
+          <div className="flex justify-between text-xs">
+            <span className="text-on-surface-variant">Schedule</span>
+            <div className="flex gap-0.5">
+              {dayOrder.map(d => {
+                const active = smartSchedule.days.split(',').includes(d);
+                return (
+                  <span key={d} className={`w-4 h-4 rounded-full text-[0.5rem] flex items-center justify-center font-bold ${
+                    active ? 'bg-primary/20 text-primary' : 'text-on-surface-variant/30'
+                  }`}>
+                    {dayLabels[d]}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-on-surface-variant">Start</span>
+            <span className="text-on-surface">
+              {smartSchedule.startMode === 'fixed'
+                ? smartSchedule.startTime
+                : `${smartSchedule.startMode} ${smartSchedule.startOffset >= 0 ? '+' : ''}${smartSchedule.startOffset}min`}
+            </span>
+          </div>
+        </>
+      )}
       <div className="flex justify-between text-xs">
         <span className="text-on-surface-variant">Calculated runtime</span>
         <span className="text-primary font-medium font-mono">{data.minutes} min</span>
@@ -948,7 +1166,7 @@ function SmartPreview({ zone, lengthUnit, soilType, plantType }: { zone: number;
       </div>
       <div className="flex justify-between text-xs">
         <span className="text-on-surface-variant">Method</span>
-        <span className="text-on-surface">{data.et0In != null ? `Weather-based (${(data.et0In * 25.4).toFixed(1)} mm/day evaporation)` : 'Soil budget (no weather data)'}</span>
+        <span className="text-on-surface">{data.et0In != null ? `Weather-based (${(data.et0In * 25.4).toFixed(1)} mm/day ET₀)` : 'Soil budget (no weather data)'}</span>
       </div>
       {data.heatWaveBoost > 1 && (
         <div className="flex justify-between text-xs">
