@@ -6,114 +6,119 @@ import {
   Pressable,
   ActivityIndicator,
   TextInput,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '@/lib/theme';
 import * as api from '@/lib/api';
+import { discoverHydra } from '@/lib/discovery';
+import type { HydraService } from '@/lib/discovery';
 
-type Step = 'scan' | 'wifi' | 'done';
+type Step = 'discover' | 'done';
 
 export default function SetupScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>('scan');
+  const [step, setStep] = useState<Step>('discover');
   const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState(false);
+  const [showManual, setShowManual] = useState(false);
+  const [manualUrl, setManualUrl] = useState('');
+  const [discovered, setDiscovered] = useState<HydraService | null>(null);
 
-  // WiFi form state
-  const [ssid, setSsid] = useState('');
-  const [password, setPassword] = useState('');
-
-  // Placeholder: BLE scanning will be added with react-native-ble-plx
-  const startScan = () => {
+  const startScan = async () => {
     setScanning(true);
-    // Simulate finding a device
-    setTimeout(() => {
+    setError(false);
+    try {
+      const svc = await discoverHydra(8000);
+      setDiscovered(svc);
+      api.setBaseUrl(`http://${svc.ip}:${svc.port}`);
+      setStep('done');
+    } catch {
+      setError(true);
+    } finally {
       setScanning(false);
-      setStep('wifi');
-    }, 2000);
-  };
-
-  const submitWifi = () => {
-    if (!ssid) {
-      Alert.alert('Error', 'Please enter the WiFi network name');
-      return;
     }
-    // Placeholder: will write SSID/password over BLE
-    setStep('done');
-    // For now, set a default URL for testing
-    api.setBaseUrl('http://192.168.1.50:3000');
   };
 
-  if (step === 'scan') {
+  const saveManualUrl = () => {
+    const trimmed = manualUrl.trim();
+    if (!trimmed) return;
+    api.setBaseUrl(trimmed);
+    setStep('done');
+  };
+
+  if (step === 'discover') {
     return (
       <View style={styles.center}>
         {scanning ? (
           <>
             <ActivityIndicator size="large" color={colors.cyan} />
-            <Text style={styles.title}>Scanning for Hydra controllers...</Text>
+            <Text style={styles.title}>Searching for Hydra controller...</Text>
             <Text style={styles.subtitle}>
-              Make sure your controller is powered on and in pairing mode
+              Make sure your controller is powered on and connected to the same network
             </Text>
           </>
+        ) : showManual ? (
+          <View style={styles.form}>
+            <Ionicons
+              name="link"
+              size={48}
+              color={colors.cyan}
+              style={{ alignSelf: 'center' }}
+            />
+            <Text style={styles.title}>Enter Server Address</Text>
+            <Text style={styles.subtitle}>
+              Enter the IP address or hostname of your Hydra controller
+            </Text>
+            <TextInput
+              style={styles.input}
+              value={manualUrl}
+              onChangeText={setManualUrl}
+              placeholder="http://192.168.1.50:3000"
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              autoFocus
+              onSubmitEditing={saveManualUrl}
+              returnKeyType="done"
+            />
+            <Pressable style={styles.primaryButton} onPress={saveManualUrl}>
+              <Text style={styles.primaryButtonText}>Connect</Text>
+            </Pressable>
+            <Pressable
+              style={styles.secondaryButton}
+              onPress={() => setShowManual(false)}
+            >
+              <Text style={styles.secondaryButtonText}>Back to Scan</Text>
+            </Pressable>
+          </View>
         ) : (
           <>
-            <Ionicons name="bluetooth" size={64} color={colors.cyan} />
-            <Text style={styles.title}>Find Your Controller</Text>
+            <Ionicons name="wifi" size={64} color={error ? colors.amber : colors.cyan} />
+            <Text style={styles.title}>
+              {error ? 'No Controller Found' : 'Find Your Controller'}
+            </Text>
             <Text style={styles.subtitle}>
-              We'll scan for nearby Hydra controllers via Bluetooth
+              {error
+                ? 'Make sure your controller is on and connected to the same WiFi network'
+                : 'We\'ll scan your local network for a Hydra controller'}
             </Text>
             <Pressable style={styles.primaryButton} onPress={startScan}>
-              <Text style={styles.primaryButtonText}>Start Scanning</Text>
+              <Text style={styles.primaryButtonText}>
+                {error ? 'Try Again' : 'Start Scanning'}
+              </Text>
             </Pressable>
+            {error && (
+              <Pressable
+                style={styles.secondaryButton}
+                onPress={() => setShowManual(true)}
+              >
+                <Text style={styles.secondaryButtonText}>Enter Manually</Text>
+              </Pressable>
+            )}
           </>
         )}
-      </View>
-    );
-  }
-
-  if (step === 'wifi') {
-    return (
-      <View style={styles.container}>
-        <View style={styles.form}>
-          <Ionicons
-            name="wifi"
-            size={48}
-            color={colors.cyan}
-            style={{ alignSelf: 'center', marginBottom: spacing.lg }}
-          />
-          <Text style={styles.title}>Connect to WiFi</Text>
-          <Text style={styles.subtitle}>
-            Enter your home WiFi credentials so the controller can connect
-          </Text>
-
-          <Text style={styles.label}>Network Name (SSID)</Text>
-          <TextInput
-            style={styles.input}
-            value={ssid}
-            onChangeText={setSsid}
-            placeholder="MyHomeNetwork"
-            placeholderTextColor={colors.textSecondary}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor={colors.textSecondary}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <Pressable style={styles.primaryButton} onPress={submitWifi}>
-            <Text style={styles.primaryButtonText}>Connect</Text>
-          </Pressable>
-        </View>
       </View>
     );
   }
@@ -124,7 +129,9 @@ export default function SetupScreen() {
       <Ionicons name="checkmark-circle" size={80} color={colors.green} />
       <Text style={styles.title}>All Set!</Text>
       <Text style={styles.subtitle}>
-        Your Hydra controller is connected and ready to go
+        {discovered
+          ? `Connected to ${discovered.name} (${discovered.ip})`
+          : 'Your Hydra controller is connected and ready to go'}
       </Text>
       <Pressable
         style={styles.primaryButton}
@@ -149,7 +156,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.xl,
   },
-  form: { marginTop: spacing.xl },
+  form: {
+    width: '100%',
+    paddingHorizontal: spacing.md,
+  },
   title: {
     color: colors.text,
     fontSize: 22,
@@ -164,13 +174,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
   },
-  label: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 6,
-    marginTop: spacing.md,
-  },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -179,6 +182,7 @@ const styles = StyleSheet.create({
     padding: 14,
     color: colors.text,
     fontSize: 16,
+    marginTop: spacing.md,
   },
   primaryButton: {
     backgroundColor: colors.cyan,
@@ -186,10 +190,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginTop: spacing.lg,
+    width: '100%',
   },
   primaryButtonText: {
     color: colors.bg,
     fontSize: 16,
     fontWeight: '700',
+  },
+  secondaryButton: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  secondaryButtonText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

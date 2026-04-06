@@ -10,17 +10,20 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing } from '@/lib/theme';
 import * as api from '@/lib/api';
+import { discoverHydra } from '@/lib/discovery';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const [serverUrl, setServerUrl] = useState(api.getBaseUrl());
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlDraft, setUrlDraft] = useState('');
+  const [discovering, setDiscovering] = useState(false);
 
   const openUrlModal = () => {
     setUrlDraft(serverUrl);
@@ -34,6 +37,21 @@ export default function SettingsScreen() {
       setServerUrl(trimmed);
     }
     setShowUrlModal(false);
+  };
+
+  const handleRediscover = async () => {
+    setDiscovering(true);
+    try {
+      const svc = await discoverHydra(6000);
+      const url = `http://${svc.ip}:${svc.port}`;
+      api.setBaseUrl(url);
+      setServerUrl(url);
+      Alert.alert('Found', `Connected to ${svc.name} (${svc.ip})`);
+    } catch {
+      Alert.alert('Not Found', 'No Hydra controller found on your network.');
+    } finally {
+      setDiscovering(false);
+    }
   };
 
   const handleForceShutdown = () => {
@@ -62,16 +80,27 @@ export default function SettingsScreen() {
     <>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <SettingsRow
-          icon="bluetooth"
+          icon="search"
           label="Setup New Controller"
           onPress={() => router.push('/setup')}
         />
-        <SettingsRow
-          icon="server"
-          label="Server URL"
-          subtitle={serverUrl || 'Not configured'}
-          onPress={openUrlModal}
-        />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Connection</Text>
+          <SettingsRow
+            icon="refresh"
+            label="Re-discover Server"
+            subtitle={discovering ? 'Scanning...' : (serverUrl || 'Not connected')}
+            onPress={handleRediscover}
+            trailing={discovering ? <ActivityIndicator size="small" color={colors.cyan} /> : undefined}
+          />
+          <SettingsRow
+            icon="server"
+            label="Manual Server URL"
+            subtitle={serverUrl || 'Not configured'}
+            onPress={openUrlModal}
+          />
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Danger Zone</Text>
@@ -132,12 +161,14 @@ function SettingsRow({
   label,
   subtitle,
   danger,
+  trailing,
   onPress,
 }: {
   icon: string;
   label: string;
   subtitle?: string;
   danger?: boolean;
+  trailing?: React.ReactNode;
   onPress: () => void;
 }) {
   return (
@@ -151,7 +182,7 @@ function SettingsRow({
         <Text style={[styles.rowLabel, danger && { color: colors.red }]}>{label}</Text>
         {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+      {trailing ?? <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />}
     </Pressable>
   );
 }
