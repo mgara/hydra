@@ -32,6 +32,9 @@ export class Scheduler {
   async start(): Promise<void> {
     await this.syncSchedules();
 
+    // Run weather check immediately on startup
+    this.checkWeather().catch(() => {});
+
     if (IS_PRODUCTION) {
       // Re-sync schedules every 5 minutes (picks up DB changes)
       this.syncTask = cron.schedule('*/5 * * * *', () => {
