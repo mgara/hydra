@@ -275,6 +275,8 @@ export interface WeatherData {
     shouldSkip: boolean;
   }[];
   heatWave: HeatWaveStatus;
+  sunrise: string | null;  // HH:MM
+  sunset: string | null;   // HH:MM
 }
 
 export const getWeather = () => request<WeatherData>('/weather');
