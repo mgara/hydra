@@ -13,6 +13,7 @@ export function Schedules() {
   const { data: schedules, refetch } = useApi(() => api.getSchedules());
   const { data: zones } = useApi(() => api.getZones());
   const { data: profiles } = useApi(() => api.getZoneProfiles());
+  const { data: weather } = useApi(() => api.getWeather());
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<api.Schedule | null>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -71,6 +72,8 @@ export function Schedules() {
             profile={profiles?.find(p => p.zone === s.zone)}
             refetch={refetch}
             onEdit={() => { setShowForm(false); setEditing(s); }}
+            sunrise={weather?.sunrise}
+            sunset={weather?.sunset}
           />
         ))}
         {schedules?.length === 0 && (
@@ -84,7 +87,7 @@ export function Schedules() {
   );
 }
 
-function ScheduleRow({ schedule, profile, refetch, onEdit }: { schedule: api.Schedule; profile?: api.ZoneProfile | null; refetch: () => void; onEdit: () => void }) {
+function ScheduleRow({ schedule, profile, refetch, onEdit, sunrise, sunset }: { schedule: api.Schedule; profile?: api.ZoneProfile | null; refetch: () => void; onEdit: () => void; sunrise?: string | null; sunset?: string | null }) {
   const hasSmart = profile?.smartEnabled && !!profile.soilType && !!profile.plantType;
   const { data: smartData } = useApi(() => hasSmart ? api.getSmartDuration(schedule.zone) : Promise.resolve(null), [hasSmart, schedule.zone]);
   const activeDays = schedule.days.split(',');
@@ -139,7 +142,18 @@ function ScheduleRow({ schedule, profile, refetch, onEdit }: { schedule: api.Sch
               <span className="text-sm text-primary-light">
                 {schedule.startMode === 'fixed'
                   ? schedule.startTime
-                  : `${Math.abs(schedule.startOffset)} min ${schedule.startOffset <= 0 ? 'before' : 'after'} ${schedule.startMode}`}
+                  : (() => {
+                      const base = schedule.startMode === 'sunrise' ? sunrise : sunset;
+                      const offsetLabel = `${Math.abs(schedule.startOffset)} min ${schedule.startOffset <= 0 ? 'before' : 'after'} ${schedule.startMode}`;
+                      if (base) {
+                        const [h, m] = base.split(':').map(Number);
+                        let total = (h ?? 0) * 60 + (m ?? 0) + schedule.startOffset;
+                        total = Math.max(0, Math.min(23 * 60 + 59, total));
+                        const computed = `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+                        return <>{offsetLabel} <span className="text-on-surface-variant text-xs">({computed})</span></>;
+                      }
+                      return offsetLabel;
+                    })()}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
