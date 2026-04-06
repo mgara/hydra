@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { ZoneState, Schedule, ZoneProfile, SoilReading } from '@/lib/api';
+import type { ZoneState, Schedule, ZoneProfile, SoilReading, HeatWaveStatus } from '@/lib/api';
 import { Card } from './Card';
 import { Icon } from './Icon';
 import { formatWeekday } from '@/lib/locale';
@@ -9,6 +9,7 @@ interface ZoneCardProps {
   schedules?: Schedule[];
   profile?: ZoneProfile | null;
   soilMoisture?: SoilReading | null;
+  heatWave?: HeatWaveStatus | null;
   onStart: (zone: number) => void;
   onStop: (zone: number) => void;
   onRename: (zone: number, name: string) => void;
@@ -55,7 +56,7 @@ function getNextRun(schedules: Schedule[]): string | null {
   return `${dayName} ${best.time}`;
 }
 
-export function ZoneCard({ zone, schedules, profile, soilMoisture, onStart, onStop, onRename }: ZoneCardProps) {
+export function ZoneCard({ zone, schedules, profile, soilMoisture, heatWave, onStart, onStop, onRename }: ZoneCardProps) {
   const isRunning = zone.status === 'running';
   const isIdle = zone.status === 'idle';
   const accent = isRunning ? 'cyan' : 'none';
@@ -138,12 +139,22 @@ export function ZoneCard({ zone, schedules, profile, soilMoisture, onStart, onSt
       </div>
 
       {/* Status pills */}
-      {(hasSmart || soilMoisture) && (
+      {(hasSmart || soilMoisture || (heatWave?.active && hasSmart)) && (
         <div className="flex flex-wrap gap-1.5 mb-4 relative z-10">
           {hasSmart && (
             <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5">
               <Icon name="auto_awesome" size={12} className="text-primary" />
               <span className="text-[0.5625rem] font-medium text-primary uppercase tracking-wider">Smart</span>
+            </span>
+          )}
+          {heatWave?.active && hasSmart && (
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${
+              heatWave.severity === 'extreme' ? 'bg-critical/10 text-critical' : 'bg-secondary/10 text-secondary'
+            }`}>
+              <Icon name="local_fire_department" size={12} />
+              <span className="text-[0.5625rem] font-medium uppercase tracking-wider">
+                +{Math.round((heatWave.boostMultiplier - 1) * 100)}%
+              </span>
             </span>
           )}
           {soilMoisture && (
