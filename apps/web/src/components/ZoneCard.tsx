@@ -10,6 +10,8 @@ interface ZoneCardProps {
   profile?: ZoneProfile | null;
   soilMoisture?: SoilReading | null;
   heatWave?: HeatWaveStatus | null;
+  sunrise?: string | null;  // HH:MM
+  sunset?: string | null;   // HH:MM
   onStart: (zone: number) => void;
   onStop: (zone: number) => void;
   onRename: (zone: number, name: string) => void;
@@ -24,7 +26,23 @@ function formatRemaining(seconds: number | null): string {
 
 const DAY_MAP: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
 
-function getNextRun(schedules: Schedule[]): string | null {
+/** Compute effective HH:MM for a schedule, resolving sunrise/sunset offsets */
+function resolveScheduleTime(s: Schedule, sunrise?: string | null, sunset?: string | null): string {
+  if (s.startMode === 'fixed') return s.startTime;
+
+  const baseTime = s.startMode === 'sunrise' ? sunrise : sunset;
+  if (!baseTime) return s.startTime; // fallback to static time
+
+  const [h, m] = baseTime.split(':').map(Number);
+  let totalMinutes = (h ?? 0) * 60 + (m ?? 0) + s.startOffset;
+  totalMinutes = Math.max(0, Math.min(23 * 60 + 59, totalMinutes));
+
+  const newH = Math.floor(totalMinutes / 60);
+  const newM = totalMinutes % 60;
+  return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+}
+
+function getNextRun(schedules: Schedule[], sunrise?: string | null, sunset?: string | null): string | null {
   const now = new Date();
   const today = now.getDay();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -32,7 +50,8 @@ function getNextRun(schedules: Schedule[]): string | null {
 
   for (const s of schedules) {
     if (!s.enabled) continue;
-    const parts = s.startTime.split(':').map(Number);
+    const effectiveTime = resolveScheduleTime(s, sunrise, sunset);
+    const parts = effectiveTime.split(':').map(Number);
     const h = parts[0] ?? 0;
     const m = parts[1] ?? 0;
     const schedMinutes = h * 60 + m;
@@ -41,8 +60,8 @@ function getNextRun(schedules: Schedule[]): string | null {
     for (const dayNum of scheduleDays) {
       let daysAway = (dayNum - today + 7) % 7;
       if (daysAway === 0 && schedMinutes <= nowMinutes) daysAway = 7;
-      if (!best || daysAway < best.daysAway || (daysAway === best.daysAway && schedMinutes < parseInt(best.time))) {
-        best = { daysAway, time: s.startTime };
+      if (!best || daysAway < best.daysAway || (daysAway === best.daysAway && schedMinutes < (parseInt(best.time) || 0))) {
+        best = { daysAway, time: effectiveTime };
       }
     }
   }
@@ -56,7 +75,7 @@ function getNextRun(schedules: Schedule[]): string | null {
   return `${dayName} ${best.time}`;
 }
 
-export function ZoneCard({ zone, schedules, profile, soilMoisture, heatWave, onStart, onStop, onRename }: ZoneCardProps) {
+export function ZoneCard({ zone, schedules, profile, soilMoisture, heatWave, sunrise, sunset, onStart, onStop, onRename }: ZoneCardProps) {
   const isRunning = zone.status === 'running';
   const isIdle = zone.status === 'idle';
   const accent = isRunning ? 'cyan' : 'none';
@@ -83,7 +102,7 @@ export function ZoneCard({ zone, schedules, profile, soilMoisture, heatWave, onS
     setEditing(false);
   };
 
-  const nextRun = isIdle && schedules ? getNextRun(schedules) : null;
+  const nextRun = isIdle && schedules ? getNextRun(schedules, sunrise, sunset) : null;
 
   return (
     <Card
