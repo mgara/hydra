@@ -8,6 +8,7 @@ import { FlowMonitor } from './flow/monitor.js';
 import { Scheduler } from './scheduler/cron.js';
 import { createServer, createSetupServer } from './api/server.js';
 import type { DisplayManager } from './oled/index.js';
+import { startMdns, stopMdns } from './mdns.js';
 import type { BleManager } from './ble/index.js';
 import type { MqttClient } from './mqtt/client.js';
 import os from 'node:os';
@@ -254,6 +255,7 @@ async function startOperationalMode(): Promise<void> {
   await app.listen({ port: SERVER_PORT, host: SERVER_HOST });
   currentApp = app;
   console.log(`[SERVER] Listening on http://${SERVER_HOST}:${SERVER_PORT}`);
+  startMdns(SERVER_PORT);
   console.log();
 
   // Listen for hardware rain sensor
@@ -331,6 +333,7 @@ async function startSetupMode(): Promise<void> {
   await app.listen({ port: SERVER_PORT, host: SERVER_HOST });
   currentApp = app;
   console.log(`[SERVER] Setup server listening on http://${SERVER_HOST}:${SERVER_PORT}`);
+  startMdns(SERVER_PORT);
 }
 
 /** Called by the setup endpoint after setup completes — transitions to full operational mode */
@@ -353,6 +356,7 @@ async function transitionToSetup(): Promise<void> {
   console.log('[STARTUP] Reset — transitioning to setup mode...');
 
   // Stop all subsystems
+  stopMdns();
   if (mqttClient) { await mqttClient.shutdown(); mqttClient = null; }
   if (ble) { ble.shutdown(); ble = null; }
   if (display) { display.shutdown(); display = null; }
@@ -395,6 +399,7 @@ async function main() {
   // ── Graceful Shutdown ───────────────────────────────
   const shutdown = async (signal: string) => {
     console.log(`\n[SHUTDOWN] ${signal} received, cleaning up...`);
+    stopMdns();
     if (mqttClient) await mqttClient.shutdown();
     if (ble) ble.shutdown();
     if (display) display.shutdown();
