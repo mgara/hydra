@@ -29,6 +29,7 @@ export interface Schedule {
   rainSkip: boolean;
   priority: boolean;       // high-priority skips rain delay
   smart: boolean;          // true = duration auto-calculated from zone profile + ET₀
+  expiresAt: string | null; // ISO datetime — schedule auto-disables after this date
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +46,8 @@ export interface ScheduleInput {
   rainSkip?: boolean;
   priority?: boolean;
   smart?: boolean;
+  expiresAt?: string | null;   // absolute: ISO datetime
+  expiresInWeeks?: number;     // relative: converted to expiresAt at creation
 }
 
 // ── Log Types ───────────────────────────────────────────
