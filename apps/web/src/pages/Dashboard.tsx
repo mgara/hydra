@@ -8,6 +8,7 @@ import { AlertBanner } from '@/components/AlertBanner';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { WeatherWidget } from '@/components/WeatherWidget';
+import { formatDateTime } from '@/lib/locale';
 import { ActivityFeed } from '@/components/ActivityFeed';
 import { RecentLogs } from '@/components/RecentLogs';
 import { SoilSensorCard } from '@/components/SoilSensorCard';
@@ -148,7 +149,7 @@ export function Dashboard() {
                 <h3 className="font-headline text-headline-sm text-on-surface">Rain Delay Active</h3>
                 <p className="text-sm text-on-surface-variant">
                   Smart delay has paused all non-priority schedules.
-                  {status.rainDelayUntil && <> Until {new Date(status.rainDelayUntil).toLocaleString()}</>}
+                  {status.rainDelayUntil && <> Until {formatDateTime(status.rainDelayUntil)}</>}
                 </p>
               </div>
             </div>

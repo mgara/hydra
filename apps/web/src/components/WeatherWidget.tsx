@@ -3,6 +3,7 @@ import type { WeatherData, RainSkipEvent } from '@/lib/api';
 import { updateSettings } from '@/lib/api';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
+import { formatWeekday, formatTime } from '@/lib/locale';
 
 interface WeatherWidgetProps {
   weather: WeatherData;
@@ -38,7 +39,7 @@ function dayName(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00');
   const today = new Date();
   if (d.toDateString() === today.toDateString()) return 'Today';
-  return d.toLocaleDateString('en-US', { weekday: 'short' });
+  return formatWeekday(d);
 }
 
 export function WeatherWidget({ weather, tempUnit, onUnitChange, rainDelayActive, rainSkips }: WeatherWidgetProps) {
@@ -104,7 +105,7 @@ export function WeatherWidget({ weather, tempUnit, onUnitChange, rainDelayActive
                 {' '}skipped — {skip.reason ?? 'rain delay'}
               </span>
               <span className="shrink-0 text-on-surface-variant/50 ml-auto">
-                {new Date(skip.skippedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                {formatTime(skip.skippedAt)}
               </span>
             </div>
           ))}

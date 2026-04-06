@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import * as api from '@/lib/api';
 import { useApi } from '@/hooks/useApi';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
+import { formatDate } from '@/lib/locale';
 import { StatusChip } from '@/components/StatusChip';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -14,6 +15,14 @@ export function Schedules() {
   const { data: profiles } = useApi(() => api.getZoneProfiles());
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<api.Schedule | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to form when editing starts
+  useEffect(() => {
+    if ((showForm || editing) && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [showForm, editing]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -34,6 +43,7 @@ export function Schedules() {
       </div>
 
       {(showForm || editing) && (
+        <div ref={formRef} key={editing?.id ?? 'new'}>
         <ScheduleForm
           zones={zones ?? []}
           initial={editing}
@@ -49,6 +59,7 @@ export function Schedules() {
           }}
           onCancel={() => { setShowForm(false); setEditing(null); }}
         />
+        </div>
       )}
 
       {/* Schedule list */}
@@ -83,20 +94,43 @@ function ScheduleRow({ schedule, profile, refetch, onEdit }: { schedule: api.Sch
     refetch();
   }, [schedule, refetch]);
 
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const handleDelete = useCallback(async () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      // Auto-dismiss after 3 seconds
+      setTimeout(() => setConfirmDelete(false), 3000);
+      return;
+    }
     await api.deleteSchedule(schedule.id);
     refetch();
-  }, [schedule.id, refetch]);
+  }, [schedule.id, refetch, confirmDelete]);
 
   return (
-    <Card accent={schedule.enabled ? 'cyan' : 'none'} className={`p-4 ${!schedule.enabled ? 'opacity-50' : ''}`}>
+    <Card accent={schedule.expiresAt ? 'amber' : schedule.enabled ? 'cyan' : 'none'} className={`p-4 ${!schedule.enabled ? 'opacity-50' : ''}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="text-label-sm uppercase text-on-surface-variant">Zone {schedule.zone}</span>
-            {hasSmart && <StatusChip label="Smart" color="cyan" />}
-            {schedule.priority && <StatusChip label="Priority" color="amber" />}
-            {schedule.rainSkip && <StatusChip label="Rain Skip" color="cyan" />}
+            {hasSmart && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5">
+                <Icon name="auto_awesome" size={12} className="text-primary" />
+                <span className="text-label-sm uppercase text-primary font-medium">Smart</span>
+              </span>
+            )}
+            {schedule.rainSkip && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5">
+                <Icon name="cloud" size={12} className="text-primary" />
+                <span className="text-label-sm uppercase text-primary font-medium">Rain Skip</span>
+              </span>
+            )}
+            {schedule.priority && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5">
+                <Icon name="priority_high" size={12} className="text-secondary" />
+                <span className="text-label-sm uppercase text-secondary font-medium">Priority</span>
+              </span>
+            )}
           </div>
           <h3 className="font-headline text-headline-sm text-on-surface">{schedule.name}</h3>
           <div className="mt-2 flex items-center gap-4">
@@ -117,6 +151,15 @@ function ScheduleRow({ schedule, profile, refetch, onEdit }: { schedule: api.Sch
               )}
             </div>
           </div>
+
+          {schedule.expiresAt && (
+            <div className="mt-2 flex items-center gap-1.5">
+              <Icon name="event" className="text-secondary" size={14} />
+              <span className="text-xs text-secondary font-medium">
+                Expires {formatDate(schedule.expiresAt)}
+              </span>
+            </div>
+          )}
 
           {/* Day pills */}
           <div className="mt-3 flex gap-1">
@@ -154,9 +197,14 @@ function ScheduleRow({ schedule, profile, refetch, onEdit }: { schedule: api.Sch
           </button>
           <button
             onClick={handleDelete}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant hover:bg-critical/10 hover:text-critical transition-colors"
+            className={`flex items-center justify-center rounded-lg transition-colors ${
+              confirmDelete
+                ? 'h-9 px-2 bg-critical/15 text-critical gap-1'
+                : 'h-9 w-9 text-on-surface-variant hover:bg-critical/10 hover:text-critical'
+            }`}
           >
             <Icon name="delete" size={18} />
+            {confirmDelete && <span className="text-xs font-medium">Sure?</span>}
           </button>
         </div>
       </div>
@@ -204,6 +252,21 @@ function ScheduleForm({
   );
   const [rainSkip, setRainSkip] = useState(initial?.rainSkip ?? true);
   const [priority, setPriority] = useState(initial?.priority ?? false);
+  const [expiryMode, setExpiryMode] = useState<'never' | 'weeks' | 'date'>(
+    initial?.expiresAt ? 'date' : 'never'
+  );
+  const [expiryWeeks, setExpiryWeeks] = useState(4);
+  const [expiryDate, setExpiryDate] = useState(
+    initial?.expiresAt ? initial.expiresAt.slice(0, 10) : ''
+  );
+
+  // For smart schedules, fetch the real-time calculated duration
+  const profile = profiles?.find(pr => pr.zone === zone);
+  const isSmart = !!(profile?.smartEnabled && profile.soilType && profile.plantType);
+  const { data: smartData } = useApi(
+    () => isSmart ? api.getSmartDuration(zone) : Promise.resolve(null),
+    [zone, isSmart],
+  );
 
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
@@ -224,6 +287,9 @@ function ScheduleForm({
       enabled: initial?.enabled ?? true,
       rainSkip,
       priority,
+      ...(expiryMode === 'weeks' ? { expiresInWeeks: expiryWeeks } : {}),
+      ...(expiryMode === 'date' ? { expiresAt: new Date(expiryDate).toISOString() } : {}),
+      ...(expiryMode === 'never' ? { expiresAt: null } : {}),
     });
   };
 
@@ -317,15 +383,28 @@ function ScheduleForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-label-sm uppercase tracking-widest text-on-surface-variant block mb-1.5">Duration (min)</label>
-          <input
-            type="number"
-            min={1}
-            max={120}
-            value={duration}
-            onChange={(e) => setDuration(Number(e.target.value))}
-            className="w-full rounded-lg bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface border-etched focus:outline-none focus:ring-1 focus:ring-primary/40"
-          />
+          <label className="text-label-sm uppercase tracking-widest text-on-surface-variant block mb-1.5">
+            Duration (min)
+            {isSmart && smartData && (
+              <span className="normal-case tracking-normal ml-1 text-primary font-normal">— smart: {smartData.minutes} min</span>
+            )}
+          </label>
+          {isSmart ? (
+            <div className="w-full rounded-lg bg-surface-container-lowest px-3 py-2.5 text-sm border-etched flex items-center gap-2">
+              <Icon name="auto_awesome" size={16} className="text-primary" />
+              <span className="text-primary font-medium">{smartData?.minutes ?? '...'} min</span>
+              <span className="text-xs text-on-surface-variant">(auto-calculated daily from ET₀)</span>
+            </div>
+          ) : (
+            <input
+              type="number"
+              min={1}
+              max={120}
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
+              className="w-full rounded-lg bg-surface-container-lowest px-3 py-2.5 text-sm text-on-surface border-etched focus:outline-none focus:ring-1 focus:ring-primary/40"
+            />
+          )}
         </div>
       </div>
 
@@ -363,6 +442,50 @@ function ScheduleForm({
           </div>
           <Toggle checked={priority} onChange={setPriority} />
         </div>
+        {/* Expiry */}
+        <div>
+          <p className="text-sm text-on-surface mb-1">Schedule expires</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {(['never', 'weeks', 'date'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setExpiryMode(mode)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                  expiryMode === mode
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-bright'
+                }`}
+              >
+                {mode === 'never' ? 'Never' : mode === 'weeks' ? 'After X weeks' : 'On date'}
+              </button>
+            ))}
+          </div>
+          {expiryMode === 'weeks' && (
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                max={52}
+                value={expiryWeeks}
+                onChange={(e) => setExpiryWeeks(Number(e.target.value))}
+                className="w-20 rounded-lg bg-surface-container-lowest px-3 py-2 text-sm text-on-surface border-etched focus:outline-none focus:ring-1 focus:ring-primary/40"
+              />
+              <span className="text-sm text-on-surface-variant">weeks from now</span>
+            </div>
+          )}
+          {expiryMode === 'date' && (
+            <div className="mt-2">
+              <input
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
+                className="rounded-lg bg-surface-container-lowest px-3 py-2 text-sm text-on-surface border-etched focus:outline-none focus:ring-1 focus:ring-primary/40"
+              />
+            </div>
+          )}
+        </div>
+
         {(() => {
           const p = profiles?.find(pr => pr.zone === zone);
           const hasSmart = p?.smartEnabled && p.soilType && p.plantType;

@@ -3,6 +3,7 @@ import * as api from '@/lib/api';
 import { useApi, usePolling } from '@/hooks/useApi';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
+import { formatDateTime } from '@/lib/locale';
 
 const DEFAULT_STYLE = { bg: 'bg-tertiary/10 border-tertiary/20', text: 'text-tertiary', dot: 'bg-tertiary' };
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -218,7 +219,7 @@ export function Logs() {
                 return (
                   <tr key={log.id} className="hover:bg-primary/5 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-on-surface">{new Date(log.started_at).toLocaleString()}</div>
+                      <div className="font-medium text-on-surface">{formatDateTime(log.started_at)}</div>
                       <div className="text-[10px] text-on-surface-variant uppercase tracking-tight">{triggerLabel(log)}</div>
                     </td>
                     <td className="px-6 py-4">

@@ -1,13 +1,13 @@
 import type { ExecutionLog } from '@/lib/api';
 import { Icon } from './Icon';
+import { formatTime as formatLocaleTime } from '@/lib/locale';
 
 interface RecentLogsProps {
   logs: ExecutionLog[];
 }
 
 function formatTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return formatLocaleTime(dateStr);
 }
 
 function statusLabel(log: ExecutionLog): { text: string; className: string } {

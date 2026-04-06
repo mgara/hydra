@@ -3,6 +3,7 @@ import * as api from '@/lib/api';
 import { Card } from './Card';
 import { Icon } from './Icon';
 import type { SoilReading, SoilDevice } from '@/lib/api';
+import { formatTime, formatShortDate } from '@/lib/locale';
 
 interface SoilSensorCardProps {
   device: SoilDevice;
@@ -237,12 +238,12 @@ function formatTimestamp(ts: string): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
 
-  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const time = formatTime(d);
 
   if (diffMs < 60000) return `Updated just now`;
   if (diffMs < 3600000) return `Updated ${Math.floor(diffMs / 60000)}m ago · ${time}`;
   if (d.toDateString() === now.toDateString()) return `Updated today at ${time}`;
 
-  const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const date = formatShortDate(d);
   return `Updated ${date} at ${time}`;
 }

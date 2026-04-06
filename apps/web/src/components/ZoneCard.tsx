@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import type { ZoneState, Schedule, ZoneProfile, SoilReading } from '@/lib/api';
 import { Card } from './Card';
 import { Icon } from './Icon';
+import { formatWeekday } from '@/lib/locale';
 
 interface ZoneCardProps {
   zone: ZoneState;
@@ -50,7 +51,7 @@ function getNextRun(schedules: Schedule[]): string | null {
   if (best.daysAway === 1) return `Tomorrow ${best.time}`;
   const nextDate = new Date(now);
   nextDate.setDate(nextDate.getDate() + best.daysAway);
-  const dayName = nextDate.toLocaleDateString('en-US', { weekday: 'short' });
+  const dayName = formatWeekday(nextDate);
   return `${dayName} ${best.time}`;
 }
 

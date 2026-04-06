@@ -4,6 +4,7 @@ import { NavBar, Sidebar } from './NavBar';
 import { Icon } from './Icon';
 import * as api from '@/lib/api';
 import { useTheme, THEMES } from '@/lib/theme';
+import { formatFullDate, formatTime } from '@/lib/locale';
 
 function useClock() {
   const [now, setNow] = useState(new Date());
@@ -49,8 +50,8 @@ export function Layout() {
     return () => clearInterval(id);
   }, []);
 
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-  const timeStr = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+  const dateStr = formatFullDate(now);
+  const timeStr = formatTime(now);
 
   return (
     <div className={`min-h-screen ${theme === 'none' ? 'bg-surface' : 'bg-transparent'}`} data-theme-bg={theme !== 'none' ? '' : undefined}>
