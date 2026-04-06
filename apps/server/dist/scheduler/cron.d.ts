@@ -8,9 +8,12 @@ export declare class Scheduler {
     private syncTask;
     /** Track which schedules we've already executed this minute to avoid double-runs */
     private recentlyExecuted;
+    /** Track last heat wave severity to avoid duplicate alerts */
+    private lastHeatWaveSeverity;
     constructor(zoneManager: ZoneManager, mqttClient?: MqttClient | null);
     start(): Promise<void>;
     stop(): void;
+    private checkWeather;
     syncSchedules(): Promise<void>;
     /**
      * After syncing, check if any schedule's time window includes "right now".

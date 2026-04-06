@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { IS_PRODUCTION } from '../config.js';
-import { shouldSkipForRain, getSolarTimes, computeSolarTime } from './weather.js';
+import { shouldSkipForRain, getSolarTimes, computeSolarTime, getHeatWaveStatus } from './weather.js';
 import { calculateSmartDuration } from './smart.js';
 import * as db from '../db/queries.js';
 const DAY_MAP = {
@@ -15,25 +15,23 @@ export class Scheduler {
     syncTask = null;
     /** Track which schedules we've already executed this minute to avoid double-runs */
     recentlyExecuted = new Set();
+    /** Track last heat wave severity to avoid duplicate alerts */
+    lastHeatWaveSeverity = 'none';
     constructor(zoneManager, mqttClient) {
         this.zoneManager = zoneManager;
         this.mqttClient = mqttClient ?? null;
     }
     async start() {
         await this.syncSchedules();
+        // Run weather check immediately on startup
+        this.checkWeather().catch(() => { });
         if (IS_PRODUCTION) {
             // Re-sync schedules every 5 minutes (picks up DB changes)
             this.syncTask = cron.schedule('*/5 * * * *', () => {
                 this.syncSchedules();
             });
             // Weather check every 30 minutes
-            this.weatherCheckTask = cron.schedule('*/30 * * * *', async () => {
-                const { skip, probability } = await shouldSkipForRain();
-                if (skip && !this.zoneManager.isRainDelayed()) {
-                    console.log(`[SCHEDULER] Rain skip triggered: ${probability}% precipitation`);
-                    await this.zoneManager.setRainDelay(24);
-                }
-            });
+            this.weatherCheckTask = cron.schedule('*/30 * * * *', () => { this.checkWeather(); });
         }
         else {
             // Dev: re-sync every 10 seconds for fast iteration
@@ -41,13 +39,7 @@ export class Scheduler {
                 this.syncSchedules();
             });
             // Dev: weather check every 2 minutes
-            this.weatherCheckTask = cron.schedule('*/2 * * * *', async () => {
-                const { skip, probability } = await shouldSkipForRain();
-                if (skip && !this.zoneManager.isRainDelayed()) {
-                    console.log(`[SCHEDULER] Rain skip triggered: ${probability}% precipitation`);
-                    await this.zoneManager.setRainDelay(24);
-                }
-            });
+            this.weatherCheckTask = cron.schedule('*/2 * * * *', () => { this.checkWeather(); });
             console.log('[SCHEDULER] Dev mode: sync every 10s, weather check every 2min');
         }
         console.log('[SCHEDULER] Started');
@@ -60,6 +52,28 @@ export class Scheduler {
         this.weatherCheckTask?.stop();
         this.syncTask?.stop();
         console.log('[SCHEDULER] Stopped');
+    }
+    async checkWeather() {
+        // Rain check
+        const { skip, probability } = await shouldSkipForRain();
+        if (skip && !this.zoneManager.isRainDelayed()) {
+            console.log(`[SCHEDULER] Rain skip triggered: ${probability}% precipitation`);
+            await this.zoneManager.setRainDelay(24);
+        }
+        // Heat wave check — alert on new or escalated heat wave
+        try {
+            const heatWave = await getHeatWaveStatus();
+            if (heatWave.active && heatWave.severity !== this.lastHeatWaveSeverity) {
+                const severity = heatWave.severity === 'extreme' ? 'warning' : 'info';
+                const boostPct = Math.round((heatWave.boostMultiplier - 1) * 100);
+                await db.createAlert(severity, `Heat Wave ${heatWave.severity === 'extreme' ? '— Extreme' : 'Warning'}`, `${heatWave.consecutiveDays} consecutive days above threshold` +
+                    (heatWave.peakTempF != null ? ` (peak ${heatWave.peakTempF}°F)` : '') +
+                    `. Smart irrigation zones boosted +${boostPct}%.`);
+                console.log(`[SCHEDULER] Heat wave ${heatWave.severity}: +${boostPct}% boost`);
+            }
+            this.lastHeatWaveSeverity = heatWave.severity;
+        }
+        catch { /* weather unavailable */ }
     }
     async syncSchedules() {
         // Stop existing tasks

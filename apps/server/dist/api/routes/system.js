@@ -26,7 +26,10 @@ export function registerSystemRoutes(app, zoneManager, gpio) {
         return await db.getAllSettings();
     });
     // PUT /api/system/settings — update settings
-    app.put('/api/system/settings', async (req) => {
+    app.put('/api/system/settings', async (req, reply) => {
+        if (!req.body || typeof req.body !== 'object') {
+            return reply.status(400).send({ error: 'Request body is required' });
+        }
         const updates = Object.entries(req.body);
         return await db.setSettingsAndReadAll(updates);
     });
