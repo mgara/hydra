@@ -121,17 +121,18 @@ export async function calculateSmartDuration(
 
 // Watering frequency per plant type (days per week)
 // Based on university extension program recommendations
+// KEY: turf on M/W/F, trees on T/Th/Sat — avoids overlap so zones don't compete for pressure
 const WATERING_FREQUENCY: Record<string, { days: string[]; label: string }> = {
   cool_turf:       { days: ['mon', 'wed', 'fri'],               label: '3x/week' },
   warm_turf:       { days: ['tue', 'fri'],                      label: '2x/week' },
-  evergreen_trees: { days: ['mon', 'wed', 'fri', 'sun'],       label: '4x/week (establishing)' },
-  shade_trees:     { days: ['mon', 'thu'],                      label: '2x/week' },
-  fruit_trees:     { days: ['mon', 'wed', 'fri'],               label: '3x/week' },
-  annuals:         { days: ['mon', 'wed', 'fri', 'sun'],       label: '4x/week' },
-  perennials:      { days: ['tue', 'fri'],                      label: '2x/week' },
+  evergreen_trees: { days: ['tue', 'thu', 'sat', 'sun'],       label: '4x/week (establishing)' },
+  shade_trees:     { days: ['tue', 'sat'],                      label: '2x/week' },
+  fruit_trees:     { days: ['tue', 'thu', 'sat'],               label: '3x/week' },
+  annuals:         { days: ['mon', 'wed', 'fri'],               label: '3x/week' },
+  perennials:      { days: ['tue', 'sat'],                      label: '2x/week' },
   vegetable:       { days: ['mon', 'wed', 'fri', 'sun'],       label: '4x/week' },
   native_plants:   { days: ['wed'],                             label: '1x/week' },
-  xeriscape:       { days: ['wed'],                             label: '1x/week' },
+  xeriscape:       { days: ['sat'],                             label: '1x/week' },
 };
 
 // Preferred start mode per plant type
@@ -154,23 +155,13 @@ export interface SmartScheduleRecommendation {
   reason: string;
 }
 
-/**
- * Calculate how many minutes of existing smart schedules could overlap.
- * Returns the total offset needed so this zone starts after all others finish.
- * Uses a 2-minute buffer between zones for valve switching.
- */
-async function calculateStaggerOffset(zone: number): Promise<number> {
-  const allSchedules = await db.getSchedules();
-  const smartSchedules = allSchedules.filter(s => s.smart && s.zone !== zone);
-  if (smartSchedules.length === 0) return 0;
-
-  // Sum up all existing smart schedule durations + 2 min buffer each
-  const BUFFER_MINUTES = 2;
-  let totalOffset = 0;
-  for (const s of smartSchedules) {
-    totalOffset += s.durationMinutes + BUFFER_MINUTES;
+/** Check if two schedules share any common days */
+function hasOverlappingDays(daysA: string, daysB: string): boolean {
+  const setA = new Set(daysA.split(','));
+  for (const d of daysB.split(',')) {
+    if (setA.has(d)) return true;
   }
-  return totalOffset;
+  return false;
 }
 
 /**
@@ -194,16 +185,13 @@ export async function generateSmartSchedule(zone: number): Promise<SmartSchedule
   const waterNeededIn = soil.awc * (plant.rootDepth / 12) * plant.mad;
   const baseMinutes = Math.max(1, Math.min(120, Math.round((waterNeededIn / soil.intakeRate) * 60)));
 
-  // Stagger: offset this zone's start so it runs after all other smart schedules
-  const staggerOffset = await calculateStaggerOffset(zone);
-  const effectiveOffset = start.offset + staggerOffset;
-
+  // Create with base offset — restagger will fix the final offset
   const schedule: ScheduleInput = {
     zone,
     name: `Smart — ${zoneRow.name}`,
     startTime: start.fixedTime,
     startMode: start.mode,
-    startOffset: effectiveOffset,
+    startOffset: start.offset,
     durationMinutes: baseMinutes,
     days: freq.days.join(','),
     enabled: true,
@@ -213,8 +201,7 @@ export async function generateSmartSchedule(zone: number): Promise<SmartSchedule
   };
 
   const plantLabel = zoneRow.plant_type.replace(/_/g, ' ');
-  const staggerNote = staggerOffset > 0 ? `, staggered +${staggerOffset}min` : '';
-  const reason = `${plantLabel} in ${zoneRow.soil_type.replace(/_/g, ' ')} soil — ${freq.label}, ${baseMinutes} min base duration (adjusted daily by ET₀)${staggerNote}`;
+  const reason = `${plantLabel} in ${zoneRow.soil_type.replace(/_/g, ' ')} soil — ${freq.label}, ${baseMinutes} min base duration (adjusted daily by ET₀)`;
 
   return { schedule, frequencyLabel: freq.label, reason };
 }
@@ -234,39 +221,57 @@ export async function applySmartSchedule(zone: number): Promise<{ created: boole
   await db.createSchedule(recommendation.schedule);
   console.log(`[SMART] Created schedule for zone ${zone}: ${recommendation.reason}`);
 
-  // Re-stagger all other smart schedules to account for the new one
-  await restaggerAllSmartSchedules(zone);
+  // Re-stagger all smart schedules (including the new one) to avoid overlap
+  await restaggerAllSmartSchedules();
 
   return { created: true, schedule: recommendation };
 }
 
 /**
  * Re-stagger all smart schedules so they run sequentially without overlap.
- * Called after adding/removing a smart schedule.
- * Optionally skip a zone that was just created (already has correct offset).
+ * Groups by overlapping days — schedules on different days don't need staggering.
  */
-async function restaggerAllSmartSchedules(skipZone?: number): Promise<void> {
+async function restaggerAllSmartSchedules(): Promise<void> {
   const allSchedules = await db.getSchedules();
   const smartSchedules = allSchedules
     .filter(s => s.smart)
-    .sort((a, b) => a.zone - b.zone); // deterministic order by zone number
+    .sort((a, b) => a.zone - b.zone);
 
+  const allZones = await db.getZones();
   const BUFFER_MINUTES = 2;
-  let cumulativeOffset = 0;
+
+  // Group schedules by day overlap — build conflict groups
+  const processed = new Set<number>();
 
   for (const s of smartSchedules) {
-    const zones = await db.getZones();
-    const zoneRow = zones.find(z => z.zone === s.zone);
-    if (!zoneRow?.plant_type) continue;
+    if (processed.has(s.id)) continue;
 
-    const start = PREFERRED_START[zoneRow.plant_type] ?? PREFERRED_START.cool_turf;
-    const newOffset = start.offset + cumulativeOffset;
-
-    if (s.zone !== skipZone && s.startOffset !== newOffset) {
-      await db.updateSchedule(s.id, { startOffset: newOffset });
+    // Find all schedules that share days with this one (transitive)
+    const group = [s];
+    processed.add(s.id);
+    for (const other of smartSchedules) {
+      if (processed.has(other.id)) continue;
+      if (group.some(g => hasOverlappingDays(g.days, other.days))) {
+        group.push(other);
+        processed.add(other.id);
+      }
     }
 
-    cumulativeOffset += s.durationMinutes + BUFFER_MINUTES;
+    // Stagger within this group
+    let cumulativeOffset = 0;
+    for (const gs of group) {
+      const zoneRow = allZones.find(z => z.zone === gs.zone);
+      if (!zoneRow?.plant_type) continue;
+
+      const start = PREFERRED_START[zoneRow.plant_type] ?? PREFERRED_START.cool_turf;
+      const newOffset = start.offset + cumulativeOffset;
+
+      if (gs.startOffset !== newOffset) {
+        await db.updateSchedule(gs.id, { startOffset: newOffset });
+      }
+
+      cumulativeOffset += gs.durationMinutes + BUFFER_MINUTES;
+    }
   }
 }
 
