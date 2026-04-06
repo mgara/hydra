@@ -201,6 +201,7 @@ export function Dashboard() {
                   schedules={schedules?.filter(s => s.zone === zone.zone)}
                   profile={zoneProfiles?.find(p => p.zone === zone.zone)}
                   soilMoisture={soilEnabled ? soilCurrent?.find(s => s.zone === zone.zone) : null}
+                  heatWave={weather?.heatWave}
                   onStart={handleStart}
                   onStop={handleStop}
                   onRename={handleRename}
