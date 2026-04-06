@@ -1,13 +1,14 @@
 import type { FastifyInstance } from 'fastify';
-import { fetchWeather, shouldSkipForRain, getHeatWaveStatus } from '../../scheduler/weather.js';
+import { fetchWeather, shouldSkipForRain, getHeatWaveStatus, getSolarTimes } from '../../scheduler/weather.js';
 
 export function registerWeatherRoutes(app: FastifyInstance): void {
 
-  // GET /api/weather — current weather + forecast + live heat wave status
+  // GET /api/weather — current weather + forecast + live heat wave status + solar times
   app.get('/api/weather', async () => {
     const weather = await fetchWeather();
     const heatWave = await getHeatWaveStatus();
-    return { ...weather, heatWave };
+    const solar = await getSolarTimes();
+    return { ...weather, heatWave, sunrise: solar?.sunrise ?? null, sunset: solar?.sunset ?? null };
   });
 
   // GET /api/weather/rain-check — should we skip?
