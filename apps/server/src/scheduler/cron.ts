@@ -82,6 +82,9 @@ export class Scheduler {
     }
     this.tasks.clear();
 
+    // Disable expired schedules
+    await this.disableExpiredSchedules();
+
     // Load enabled schedules from DB
     const schedules = await db.getEnabledSchedules();
 
@@ -267,6 +270,20 @@ export class Scheduler {
       console.error(`[SCHEDULER] Failed to start zone ${schedule.zone}: ${result.error}`);
       await db.createAlert('warning', 'Schedule Failed',
         `"${schedule.name}" (Zone ${schedule.zone}) failed to start: ${result.error}`);
+    }
+  }
+
+  /** Disable schedules that have passed their expiry date */
+  private async disableExpiredSchedules(): Promise<void> {
+    const all = await db.getEnabledSchedules();
+    const now = new Date().toISOString();
+    for (const s of all) {
+      if (s.expiresAt && s.expiresAt <= now) {
+        await db.updateSchedule(s.id, { enabled: false });
+        console.log(`[SCHEDULER] Schedule "${s.name}" (zone ${s.zone}) expired — disabled`);
+        await db.createAlert('info', 'Schedule Expired',
+          `"${s.name}" (Zone ${s.zone}) has been automatically disabled — it expired on ${new Date(s.expiresAt).toLocaleDateString()}.`);
+      }
     }
   }
 }
