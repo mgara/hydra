@@ -33,7 +33,7 @@ export default {
           container: '#00D5E2',
         },
         critical: {
-          DEFAULT: '#FFB4AB',
+          DEFAULT: '#fc6150',
           container: '#93000A',
         },
         on: {
