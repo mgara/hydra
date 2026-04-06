@@ -38,7 +38,10 @@ export function registerSystemRoutes(
   });
 
   // PUT /api/system/settings — update settings
-  app.put<{ Body: Record<string, string> }>('/api/system/settings', async (req) => {
+  app.put<{ Body: Record<string, string> }>('/api/system/settings', async (req, reply) => {
+    if (!req.body || typeof req.body !== 'object') {
+      return reply.status(400).send({ error: 'Request body is required' });
+    }
     const updates: [string, string][] = Object.entries(req.body);
     return await db.setSettingsAndReadAll(updates);
   });
