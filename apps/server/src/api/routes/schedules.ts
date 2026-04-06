@@ -23,7 +23,7 @@ export function registerScheduleRoutes(app: FastifyInstance, zoneManager: ZoneMa
 
   // POST /api/schedules — create new schedule
   app.post<{ Body: ScheduleInput }>('/api/schedules', async (req, reply) => {
-    const { zone, name, startTime, startMode, startOffset, durationMinutes, days, enabled, rainSkip, priority } = req.body;
+    const { zone, name, startTime, startMode, startOffset, durationMinutes, days, enabled, rainSkip, priority, smart, expiresAt, expiresInWeeks } = req.body;
 
     if (!zone || !zoneManager.isValidZone(zone)) {
       return reply.status(400).send({ error: `Invalid zone (1-${zoneManager.getZoneCount()})` });
@@ -62,6 +62,9 @@ export function registerScheduleRoutes(app: FastifyInstance, zoneManager: ZoneMa
       enabled,
       rainSkip,
       priority,
+      smart,
+      expiresAt,
+      expiresInWeeks,
     });
 
 
