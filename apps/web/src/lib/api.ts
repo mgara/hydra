@@ -186,6 +186,7 @@ export interface Schedule {
   rainSkip: boolean;
   priority: boolean;
   smart: boolean;
+  expiresAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -202,6 +203,8 @@ export interface ScheduleInput {
   rainSkip?: boolean;
   priority?: boolean;
   smart?: boolean;
+  expiresAt?: string | null;
+  expiresInWeeks?: number;
 }
 
 export const getSchedules = (zone?: number) =>
