@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import { IS_PRODUCTION } from '../config.js';
 import type { Schedule } from '../types.js';
 import { ZoneManager } from '../zones/manager.js';
-import { shouldSkipForRain, getSolarTimes, computeSolarTime } from './weather.js';
+import { shouldSkipForRain, getSolarTimes, computeSolarTime, getHeatWaveStatus } from './weather.js';
 import type { MqttClient } from '../mqtt/client.js';
 import { calculateSmartDuration } from './smart.js';
 import * as db from '../db/queries.js';
@@ -21,6 +21,8 @@ export class Scheduler {
   private syncTask: cron.ScheduledTask | null = null;
   /** Track which schedules we've already executed this minute to avoid double-runs */
   private recentlyExecuted = new Set<string>();
+  /** Track last heat wave severity to avoid duplicate alerts */
+  private lastHeatWaveSeverity: 'none' | 'warning' | 'extreme' = 'none';
 
   constructor(zoneManager: ZoneManager, mqttClient?: MqttClient | null) {
     this.zoneManager = zoneManager;
@@ -37,13 +39,7 @@ export class Scheduler {
       });
 
       // Weather check every 30 minutes
-      this.weatherCheckTask = cron.schedule('*/30 * * * *', async () => {
-        const { skip, probability } = await shouldSkipForRain();
-        if (skip && !this.zoneManager.isRainDelayed()) {
-          console.log(`[SCHEDULER] Rain skip triggered: ${probability}% precipitation`);
-          await this.zoneManager.setRainDelay(24);
-        }
-      });
+      this.weatherCheckTask = cron.schedule('*/30 * * * *', () => { this.checkWeather(); });
     } else {
       // Dev: re-sync every 10 seconds for fast iteration
       this.syncTask = cron.schedule('*/10 * * * * *', () => {
@@ -51,13 +47,7 @@ export class Scheduler {
       });
 
       // Dev: weather check every 2 minutes
-      this.weatherCheckTask = cron.schedule('*/2 * * * *', async () => {
-        const { skip, probability } = await shouldSkipForRain();
-        if (skip && !this.zoneManager.isRainDelayed()) {
-          console.log(`[SCHEDULER] Rain skip triggered: ${probability}% precipitation`);
-          await this.zoneManager.setRainDelay(24);
-        }
-      });
+      this.weatherCheckTask = cron.schedule('*/2 * * * *', () => { this.checkWeather(); });
 
       console.log('[SCHEDULER] Dev mode: sync every 10s, weather check every 2min');
     }
@@ -73,6 +63,32 @@ export class Scheduler {
     this.weatherCheckTask?.stop();
     this.syncTask?.stop();
     console.log('[SCHEDULER] Stopped');
+  }
+
+  private async checkWeather(): Promise<void> {
+    // Rain check
+    const { skip, probability } = await shouldSkipForRain();
+    if (skip && !this.zoneManager.isRainDelayed()) {
+      console.log(`[SCHEDULER] Rain skip triggered: ${probability}% precipitation`);
+      await this.zoneManager.setRainDelay(24);
+    }
+
+    // Heat wave check — alert on new or escalated heat wave
+    try {
+      const heatWave = await getHeatWaveStatus();
+      if (heatWave.active && heatWave.severity !== this.lastHeatWaveSeverity) {
+        const severity = heatWave.severity === 'extreme' ? 'warning' : 'info';
+        const boostPct = Math.round((heatWave.boostMultiplier - 1) * 100);
+        await db.createAlert(severity,
+          `Heat Wave ${heatWave.severity === 'extreme' ? '— Extreme' : 'Warning'}`,
+          `${heatWave.consecutiveDays} consecutive days above threshold` +
+          (heatWave.peakTempF != null ? ` (peak ${heatWave.peakTempF}°F)` : '') +
+          `. Smart irrigation zones boosted +${boostPct}%.`
+        );
+        console.log(`[SCHEDULER] Heat wave ${heatWave.severity}: +${boostPct}% boost`);
+      }
+      this.lastHeatWaveSeverity = heatWave.severity;
+    } catch { /* weather unavailable */ }
   }
 
   async syncSchedules(): Promise<void> {
