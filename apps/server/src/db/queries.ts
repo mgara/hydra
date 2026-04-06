@@ -210,8 +210,8 @@ export async function getEnabledSchedules(): Promise<Schedule[]> {
 
 export async function createSchedule(input: ScheduleInput): Promise<number> {
   const result = await getDb().execute({
-    sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority, smart)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority, smart, expires_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.zone,
       input.name,
@@ -224,6 +224,7 @@ export async function createSchedule(input: ScheduleInput): Promise<number> {
       input.rainSkip !== false ? 1 : 0,
       input.priority ? 1 : 0,
       input.smart ? 1 : 0,
+      resolveExpiresAt(input),
     ],
   });
   return Number(result.lastInsertRowid);
@@ -243,6 +244,10 @@ export async function updateSchedule(id: number, input: Partial<ScheduleInput>) 
   if (input.rainSkip !== undefined) { fields.push('rain_skip = ?'); values.push(input.rainSkip ? 1 : 0); }
   if (input.priority !== undefined) { fields.push('priority = ?'); values.push(input.priority ? 1 : 0); }
   if (input.smart !== undefined) { fields.push('smart = ?'); values.push(input.smart ? 1 : 0); }
+  if (input.expiresAt !== undefined || input.expiresInWeeks !== undefined) {
+    fields.push('expires_at = ?');
+    values.push(resolveExpiresAt(input) as string | number);
+  }
 
   if (fields.length === 0) return;
 
@@ -592,6 +597,19 @@ export async function pruneOldSoilReadings(olderThanDays: number = 30): Promise<
   });
 }
 
+// ── Schedule Helpers ────────────────────────────────────
+
+/** Resolve expiresAt from absolute date or relative weeks */
+function resolveExpiresAt(input: { expiresAt?: string | null; expiresInWeeks?: number }): string | null {
+  if (input.expiresAt !== undefined) return input.expiresAt;
+  if (input.expiresInWeeks != null && input.expiresInWeeks > 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + input.expiresInWeeks * 7);
+    return d.toISOString();
+  }
+  return null;
+}
+
 // ── Row Mapping Helpers ─────────────────────────────────
 
 function rowToSchedule(row: Row): Schedule {
@@ -608,6 +626,7 @@ function rowToSchedule(row: Row): Schedule {
     rainSkip: !!row.rain_skip,
     priority: !!row.priority,
     smart: !!row.smart,
+    expiresAt: (row.expires_at as string) ?? null,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
