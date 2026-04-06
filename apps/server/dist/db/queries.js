@@ -185,8 +185,8 @@ export async function getEnabledSchedules() {
 }
 export async function createSchedule(input) {
     const result = await getDb().execute({
-        sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority, smart)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO schedules (zone, name, start_time, start_mode, start_offset, duration_minutes, days, enabled, rain_skip, priority, smart, expires_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
             input.zone,
             input.name,
@@ -199,6 +199,7 @@ export async function createSchedule(input) {
             input.rainSkip !== false ? 1 : 0,
             input.priority ? 1 : 0,
             input.smart ? 1 : 0,
+            resolveExpiresAt(input),
         ],
     });
     return Number(result.lastInsertRowid);
@@ -245,6 +246,10 @@ export async function updateSchedule(id, input) {
     if (input.smart !== undefined) {
         fields.push('smart = ?');
         values.push(input.smart ? 1 : 0);
+    }
+    if (input.expiresAt !== undefined || input.expiresInWeeks !== undefined) {
+        fields.push('expires_at = ?');
+        values.push(resolveExpiresAt(input));
     }
     if (fields.length === 0)
         return;
@@ -497,6 +502,18 @@ export async function pruneOldSoilReadings(olderThanDays = 30) {
         args: [`-${olderThanDays} days`],
     });
 }
+// ── Schedule Helpers ────────────────────────────────────
+/** Resolve expiresAt from absolute date or relative weeks */
+function resolveExpiresAt(input) {
+    if (input.expiresAt !== undefined)
+        return input.expiresAt;
+    if (input.expiresInWeeks != null && input.expiresInWeeks > 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + input.expiresInWeeks * 7);
+        return d.toISOString();
+    }
+    return null;
+}
 // ── Row Mapping Helpers ─────────────────────────────────
 function rowToSchedule(row) {
     return {
@@ -512,6 +529,7 @@ function rowToSchedule(row) {
         rainSkip: !!row.rain_skip,
         priority: !!row.priority,
         smart: !!row.smart,
+        expiresAt: row.expires_at ?? null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };

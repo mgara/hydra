@@ -22,6 +22,7 @@ export interface Schedule {
     rainSkip: boolean;
     priority: boolean;
     smart: boolean;
+    expiresAt: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -37,6 +38,8 @@ export interface ScheduleInput {
     rainSkip?: boolean;
     priority?: boolean;
     smart?: boolean;
+    expiresAt?: string | null;
+    expiresInWeeks?: number;
 }
 export type LogStatus = 'completed' | 'rain_skip' | 'manual_stop' | 'leak_alarm' | 'error';
 export interface ExecutionLog {

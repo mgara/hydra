@@ -16,7 +16,7 @@ export function registerScheduleRoutes(app, zoneManager) {
     });
     // POST /api/schedules — create new schedule
     app.post('/api/schedules', async (req, reply) => {
-        const { zone, name, startTime, startMode, startOffset, durationMinutes, days, enabled, rainSkip, priority } = req.body;
+        const { zone, name, startTime, startMode, startOffset, durationMinutes, days, enabled, rainSkip, priority, smart, expiresAt, expiresInWeeks } = req.body;
         if (!zone || !zoneManager.isValidZone(zone)) {
             return reply.status(400).send({ error: `Invalid zone (1-${zoneManager.getZoneCount()})` });
         }
@@ -53,6 +53,9 @@ export function registerScheduleRoutes(app, zoneManager) {
             enabled,
             rainSkip,
             priority,
+            smart,
+            expiresAt,
+            expiresInWeeks,
         });
         return reply.status(201).send(await db.getScheduleById(id));
     });

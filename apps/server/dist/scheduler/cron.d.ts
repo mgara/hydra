@@ -18,5 +18,7 @@ export declare class Scheduler {
      */
     private checkDueSchedules;
     private executeSchedule;
+    /** Disable schedules that have passed their expiry date */
+    private disableExpiredSchedules;
 }
 //# sourceMappingURL=cron.d.ts.map
