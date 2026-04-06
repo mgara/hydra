@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "hydra-db": {
+      "command": "/Users/meher.gara/.yarn/bin/mcp-sqlite-server",
+      "args": [
+        "/Users/meher.gara/work/hydra7z/apps/server/data/hydra.db"
+      ]
+    }
+  }
+}
