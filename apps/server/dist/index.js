@@ -6,6 +6,7 @@ import { ZoneManager } from './zones/manager.js';
 import { FlowMonitor } from './flow/monitor.js';
 import { Scheduler } from './scheduler/cron.js';
 import { createServer, createSetupServer } from './api/server.js';
+import { startMdns, stopMdns } from './mdns.js';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
 function getLocalIp() {
@@ -235,6 +236,7 @@ async function startOperationalMode() {
     await app.listen({ port: SERVER_PORT, host: SERVER_HOST });
     currentApp = app;
     console.log(`[SERVER] Listening on http://${SERVER_HOST}:${SERVER_PORT}`);
+    startMdns(SERVER_PORT);
     console.log();
     // Listen for hardware rain sensor
     gpio.on('rain', (detected) => {
@@ -308,6 +310,7 @@ async function startSetupMode() {
     await app.listen({ port: SERVER_PORT, host: SERVER_HOST });
     currentApp = app;
     console.log(`[SERVER] Setup server listening on http://${SERVER_HOST}:${SERVER_PORT}`);
+    startMdns(SERVER_PORT);
 }
 /** Called by the setup endpoint after setup completes — transitions to full operational mode */
 async function transitionToOperational() {
@@ -325,6 +328,7 @@ async function transitionToOperational() {
 async function transitionToSetup() {
     console.log('[STARTUP] Reset — transitioning to setup mode...');
     // Stop all subsystems
+    stopMdns();
     if (mqttClient) {
         await mqttClient.shutdown();
         mqttClient = null;
@@ -385,6 +389,7 @@ async function main() {
     // ── Graceful Shutdown ───────────────────────────────
     const shutdown = async (signal) => {
         console.log(`\n[SHUTDOWN] ${signal} received, cleaning up...`);
+        stopMdns();
         if (mqttClient)
             await mqttClient.shutdown();
         if (ble)
