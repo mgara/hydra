@@ -163,6 +163,15 @@ export function computeSolarTime(
 
 /** Get current heat wave status — always reads the latest threshold from settings */
 export async function getHeatWaveStatus(): Promise<HeatWaveStatus> {
+  // Dev override: simulate heat wave via setting
+  const simulate = await getSetting('heat_wave_simulate');
+  if (simulate === 'warning') {
+    return { active: true, severity: 'warning', consecutiveDays: 2, peakTempF: 98, boostMultiplier: 1.25 };
+  }
+  if (simulate === 'extreme') {
+    return { active: true, severity: 'extreme', consecutiveDays: 4, peakTempF: 108, boostMultiplier: 1.5 };
+  }
+
   const weather = await fetchWeather();
   const thresholdStr = await getSetting('heat_wave_threshold_f');
   const thresholdF = thresholdStr ? parseFloat(thresholdStr) : 95;
