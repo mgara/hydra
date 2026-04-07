@@ -9,8 +9,9 @@ export const RAIN_SKIP_THRESHOLD = parseFloat(process.env.RAIN_SKIP_THRESHOLD ||
 // Available GPIO pool (BCM, excluding reserved pins):
 // GPIO2/3 (I2C), GPIO7-11 (SPI), GPIO12/13 (PWM)
 // GPIO 19/20/26 reserved for OLED buttons (up/down/confirm)
+// GPIO 27 reserved for power button
 export const AVAILABLE_GPIO_POOL = [
-    4, 5, 6, 14, 15, 16, 17, 18, 23, 24, 25, 27,
+    4, 5, 6, 14, 15, 16, 17, 18, 23, 24, 25,
 ];
 export const MAX_ZONES = 10;
 export const MAX_ZONES_WITH_PER_ZONE_FLOW = 5;
@@ -32,6 +33,9 @@ export const OLED_BUTTON_UP_GPIO = process.env.OLED_BUTTON_UP_GPIO ? parseInt(pr
 export const OLED_BUTTON_DOWN_GPIO = process.env.OLED_BUTTON_DOWN_GPIO ? parseInt(process.env.OLED_BUTTON_DOWN_GPIO, 10) : 20;
 export const OLED_BUTTON_CONFIRM_GPIO = process.env.OLED_BUTTON_CONFIRM_GPIO ? parseInt(process.env.OLED_BUTTON_CONFIRM_GPIO, 10) : 26;
 export const OLED_SLEEP_TIMEOUT = parseInt(process.env.OLED_SLEEP_TIMEOUT || String(10 * 60 * 1000), 10);
+// Power Button (GPIO 27 — short press = reboot, long press > 2s = poweroff)
+export const POWER_BUTTON_GPIO = process.env.POWER_BUTTON_GPIO ? parseInt(process.env.POWER_BUTTON_GPIO, 10) : 27;
+export const POWER_BUTTON_LONG_PRESS_MS = 2000;
 // BLE Provisioning
 export const BLE_ENABLED = process.env.BLE_ENABLED !== 'false'; // enabled by default
 // MQTT (Zigbee2MQTT soil sensors)

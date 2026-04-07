@@ -1,4 +1,5 @@
-import { SERVER_PORT, SERVER_HOST, MATTER_ENABLED, OLED_ENABLED, OLED_DRIVER, OLED_I2C_ADDRESS, OLED_I2C_BUS, OLED_BUTTON_UP_GPIO, OLED_BUTTON_DOWN_GPIO, OLED_BUTTON_CONFIRM_GPIO, OLED_SLEEP_TIMEOUT, BLE_ENABLED, MQTT_BROKER } from './config.js';
+import { SERVER_PORT, SERVER_HOST, MATTER_ENABLED, OLED_ENABLED, OLED_DRIVER, OLED_I2C_ADDRESS, OLED_I2C_BUS, OLED_BUTTON_UP_GPIO, OLED_BUTTON_DOWN_GPIO, OLED_BUTTON_CONFIRM_GPIO, OLED_SLEEP_TIMEOUT, BLE_ENABLED, MQTT_BROKER, POWER_BUTTON_GPIO, POWER_BUTTON_LONG_PRESS_MS } from './config.js';
+import { PowerButton } from './power-button.js';
 import { initDb, closeDb } from './db/index.js';
 import * as db from './db/queries.js';
 import { createGpioController } from './gpio/controller.js';
@@ -74,6 +75,7 @@ let matterBridge = null;
 let display = null;
 let ble = null;
 let mqttClient = null;
+let powerButton = null;
 async function startOperationalMode() {
     const config = await db.getSystemConfig();
     console.log(`[STARTUP] Configuration loaded — ${config.zoneCount} zones`);
@@ -82,6 +84,17 @@ async function startOperationalMode() {
     // Initialize GPIO
     gpio = createGpioController();
     await gpio.init(pinConfig);
+    // Initialize power button (GPIO 27 — short=reboot, long=poweroff)
+    powerButton = new PowerButton(POWER_BUTTON_GPIO, POWER_BUTTON_LONG_PRESS_MS);
+    powerButton.on('reboot', async () => {
+        await db.createAlert('info', 'Reboot', 'Reboot triggered via power button.');
+    });
+    powerButton.on('poweroff', async () => {
+        zoneManager?.stopAll();
+        gpio?.closeMaster();
+        await db.createAlert('critical', 'Shutdown', 'Shutdown triggered via power button.');
+    });
+    await powerButton.init();
     // Initialize zone manager
     zoneManager = new ZoneManager(gpio);
     await zoneManager.init();
@@ -329,6 +342,10 @@ async function transitionToSetup() {
     console.log('[STARTUP] Reset — transitioning to setup mode...');
     // Stop all subsystems
     stopMdns();
+    if (powerButton) {
+        powerButton.shutdown();
+        powerButton = null;
+    }
     if (mqttClient) {
         await mqttClient.shutdown();
         mqttClient = null;
@@ -390,6 +407,8 @@ async function main() {
     const shutdown = async (signal) => {
         console.log(`\n[SHUTDOWN] ${signal} received, cleaning up...`);
         stopMdns();
+        if (powerButton)
+            powerButton.shutdown();
         if (mqttClient)
             await mqttClient.shutdown();
         if (ble)
