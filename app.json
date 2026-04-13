@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "0690f6bd-0866-4942-b6ba-78b4f146d555"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.megerg.hydra",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}

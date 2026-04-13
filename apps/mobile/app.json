@@ -43,6 +43,14 @@
         {
           "root": "./src/app"
         }
+      ],
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": ["peripheral", "central"],
+          "bluetoothAlwaysPermission": "Hydra uses Bluetooth to configure your irrigation controller."
+        }
       ]
     ],
     "extra": {
