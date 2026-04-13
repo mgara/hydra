@@ -2136,6 +2136,8 @@ __metadata:
       optional: true
     i2c-bus:
       optional: true
+    pigpio:
+      optional: true
   languageName: unknown
   linkType: soft
 
