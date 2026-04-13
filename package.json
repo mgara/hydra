@@ -8,6 +8,9 @@
   "scripts": {
     "dev:server": "nx dev @hydra/server",
     "dev:web": "nx dev @hydra/web",
+    "dev:mobile": "nx dev @hydra/mobile",
+    "dev:mobile:ios": "nx dev:ios @hydra/mobile",
+    "dev:mobile:android": "nx dev:android @hydra/mobile",
     "dev": "nx run-many --target=dev --all",
     "build": "nx run-many --target=build --all",
     "lint": "nx run-many --target=lint --all",

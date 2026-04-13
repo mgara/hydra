@@ -17,7 +17,11 @@
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "Hydra uses Bluetooth to discover and configure your irrigation controller.",
         "NSLocalNetworkUsageDescription": "Hydra uses local network to communicate with your irrigation controller.",
-        "NSBonjourServices": ["_hydra._tcp."]
+        "NSBonjourServices": [
+          "_hydra._tcp.",
+          "_hydra._tcp."
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -40,6 +44,15 @@
           "root": "./src/app"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "root": "./src/app"
+      },
+      "eas": {
+        "projectId": "0690f6bd-0866-4942-b6ba-78b4f146d555"
+      }
+    },
+    "owner": "megerg"
   }
 }

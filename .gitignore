@@ -3,6 +3,22 @@ node_modules/
 .vite/
 .expo/
 .claude/
+.yarn/
+.yarnrc.yml
+.pnp.*
+dist/
+build/
+coverage/
+logs/
+*.log
+*.tsbuildinfo
+*.cache
+*.tmp
+*.bak
+*.swp
+*.swo
+*.zip
+*.tar.gz
 
 # SQLite
 *.db
