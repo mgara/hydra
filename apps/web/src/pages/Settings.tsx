@@ -7,8 +7,10 @@ import { StatusChip } from '@/components/StatusChip';
 import { LocationPicker } from '@/components/LocationPicker';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { THEMES, useTheme } from '@/lib/theme';
+import { THEMES, useTheme, type ThemeId } from '@/lib/theme';
 import { SOIL_PROFILES, PLANT_PROFILES, getSoilProfile, getPlantProfile, getPlantProfilesForZone, formatRate, formatLength } from '@/lib/zone-profiles';
+import { getStoredAuth, storeAuth, clearAuth, type CloudUser } from '@/lib/auth';
+import { login, register, getCloudSettings, putCloudSettings, CloudApiError } from '@/lib/cloudApi';
 
 function useHasBg() {
   const { theme } = useTheme();
@@ -84,6 +86,9 @@ export function Settings() {
 
       {/* Soil & Plant Reference */}
       <IrrigationReferenceCard lengthUnit={(settings?.length_unit as 'in' | 'cm') || 'in'} />
+
+      {/* Cloud Sync */}
+      <CloudSyncCard settings={settings} refetch={refetch} />
 
       {/* Advanced link */}
       <Link
@@ -1257,6 +1262,202 @@ function IrrigationReferenceCard({ lengthUnit }: { lengthUnit: 'in' | 'cm' }) {
             AWC = available water capacity per foot of soil.
           </p>
         </div>
+      )}
+    </Card>
+  );
+}
+
+function CloudSyncCard({
+  settings,
+  refetch,
+}: {
+  settings: Record<string, string> | null | undefined;
+  refetch: () => void;
+}) {
+  const [auth, setAuth] = useState<CloudUser | null>(() => getStoredAuth());
+  const [tab, setTab] = useState<'login' | 'register'>('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const hasBg = useHasBg();
+
+  const handleAuth = async () => {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = tab === 'login'
+        ? await login(username, password)
+        : await register(username, password);
+      storeAuth(res);
+      setAuth(res);
+      setUsername('');
+      setPassword('');
+      setStatus({ type: 'success', msg: tab === 'login' ? 'Signed in' : 'Account created' });
+    } catch (err) {
+      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Request failed' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!auth) return;
+    setBusy(true);
+    setStatus(null);
+    try {
+      await putCloudSettings(auth.token, {
+        theme,
+        tempUnit: settings?.temp_unit,
+        lengthUnit: settings?.length_unit,
+      });
+      setStatus({ type: 'success', msg: 'Settings saved to cloud' });
+    } catch (err) {
+      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Save failed' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLoad = async () => {
+    if (!auth) return;
+    setBusy(true);
+    setStatus(null);
+    try {
+      const { data } = await getCloudSettings(auth.token);
+      if (!data) {
+        setStatus({ type: 'error', msg: 'No settings saved yet' });
+        return;
+      }
+      if (data.theme) setTheme(data.theme as ThemeId);
+      const updates: Record<string, string> = {};
+      if (data.tempUnit) updates.temp_unit = data.tempUnit;
+      if (data.lengthUnit) updates.length_unit = data.lengthUnit;
+      if (Object.keys(updates).length > 0) {
+        await api.updateSettings(updates);
+        refetch();
+      }
+      setStatus({ type: 'success', msg: 'Settings loaded from cloud' });
+    } catch (err) {
+      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Load failed' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLogout = () => {
+    clearAuth();
+    setAuth(null);
+    setStatus(null);
+  };
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Icon name="cloud_sync" className="text-primary" size={20} />
+        <h2 className="font-headline text-headline-md text-on-surface">Cloud Sync</h2>
+        {auth && (
+          <span className="ml-auto text-xs text-on-surface-variant">
+            Signed in as <span className="text-on-surface font-medium">{auth.username}</span>
+          </span>
+        )}
+      </div>
+
+      {!auth ? (
+        <div className="space-y-4">
+          <div className="flex rounded-xl overflow-hidden border border-outline-variant/20 w-fit">
+            {(['login', 'register'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => { setTab(t); setStatus(null); }}
+                className={`px-5 py-1.5 text-sm font-medium transition-colors ${
+                  tab === t
+                    ? 'bg-primary text-on-primary'
+                    : 'text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                {t === 'login' ? 'Sign In' : 'Register'}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-3 max-w-sm">
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className={`w-full rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                hasBg ? 'glass bg-transparent' : 'bg-surface-container-low'
+              }`}
+            />
+            <input
+              type="password"
+              placeholder="Password (min 8 chars)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !busy && username && password.length >= 8 && handleAuth()}
+              className={`w-full rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                hasBg ? 'glass bg-transparent' : 'bg-surface-container-low'
+              }`}
+            />
+            <button
+              onClick={handleAuth}
+              disabled={busy || !username || password.length < 8}
+              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-on-primary transition-opacity disabled:opacity-40"
+            >
+              {busy ? 'Please wait…' : tab === 'login' ? 'Sign In' : 'Create Account'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <p className="text-sm text-on-surface-variant">
+            Sync your theme and unit preferences across devices.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSave}
+              disabled={busy}
+              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-on-primary transition-opacity disabled:opacity-40"
+            >
+              <Icon name="cloud_upload" size={16} />
+              Save to Cloud
+            </button>
+            <button
+              onClick={handleLoad}
+              disabled={busy}
+              className="flex items-center gap-2 rounded-xl border border-primary/40 px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
+            >
+              <Icon name="cloud_download" size={16} />
+              Load from Cloud
+            </button>
+            <button
+              onClick={handleLogout}
+              className="ml-auto flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+              <Icon name="logout" size={14} />
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+
+      {status && (
+        <p className={`mt-3 text-sm ${status.type === 'success' ? 'text-primary' : 'text-error'}`}>
+          {status.type === 'success' ? (
+            <span className="flex items-center gap-1.5">
+              <Icon name="check_circle" size={14} />
+              {status.msg}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5">
+              <Icon name="error" size={14} />
+              {status.msg}
+            </span>
+          )}
+        </p>
       )}
     </Card>
   );
