@@ -1,3 +1,5 @@
+import type { ZoneProfile, Schedule, FlowSettings, SoilSettings } from './api';
+
 const CLOUD_URL = (import.meta.env.VITE_CLOUD_URL as string | undefined) ?? 'http://localhost:4000';
 
 export class CloudApiError extends Error {
@@ -6,55 +8,68 @@ export class CloudApiError extends Error {
   }
 }
 
-async function request<T>(
-  path: string,
-  token?: string,
-  opts?: RequestInit,
-): Promise<T> {
+async function request<T>(path: string, token?: string, opts?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {};
   if (opts?.body) headers['Content-Type'] = 'application/json';
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${CLOUD_URL}${path}`, { ...opts, headers });
-
   if (res.status === 204) return undefined as T;
-
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new CloudApiError(res.status, (body as { error?: string }).error ?? res.statusText);
   }
-
   return res.json();
 }
 
-export interface AuthResponse {
-  token: string;
-  username: string;
-}
+// ── Auth ────────────────────────────────────────────────
 
-export const register = (username: string, password: string) =>
+export interface AuthResponse { token: string; username: string }
+
+export const cloudRegister = (username: string, password: string) =>
   request<AuthResponse>('/api/auth/register', undefined, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
 
-export const login = (username: string, password: string) =>
+export const cloudLogin = (username: string, password: string) =>
   request<AuthResponse>('/api/auth/login', undefined, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
 
-export interface CloudSettingsData {
-  theme?: string;
-  tempUnit?: string;
-  lengthUnit?: string;
-}
+// ── Data ────────────────────────────────────────────────
 
-export const getCloudSettings = (token: string) =>
-  request<{ data: CloudSettingsData | null }>('/api/settings', token);
+export interface BackupIndex { key: string; updatedAt: string }
 
-export const putCloudSettings = (token: string, data: CloudSettingsData) =>
-  request<void>('/api/settings', token, {
+export const listBackupKeys = (token: string) =>
+  request<BackupIndex[]>('/api/data', token);
+
+export const getBackupData = <T>(token: string, key: string) =>
+  request<{ key: string; data: T; updatedAt: string }>(`/api/data/${key}`, token);
+
+export const putBackupData = (token: string, key: string, data: unknown) =>
+  request<void>(`/api/data/${key}`, token, {
     method: 'PUT',
     body: JSON.stringify({ data }),
   });
+
+// ── Typed backup shapes ───────────────────────────────
+
+export interface SettingsBackup {
+  theme?: string;
+  temp_unit?: string;
+  length_unit?: string;
+  weather_lat?: string;
+  weather_lon?: string;
+  weather_location_name?: string;
+  hardinessZone?: string | null;
+}
+
+export type ZonesBackup = ZoneProfile[];
+export type SchedulesBackup = Pick<Schedule,
+  'zone' | 'name' | 'startTime' | 'startMode' | 'startOffset' |
+  'durationMinutes' | 'days' | 'enabled' | 'rainSkip' | 'priority' | 'smart' | 'expiresAt'
+>[];
+export type FlowBackup = FlowSettings;
+export type SoilBackup = SoilSettings;

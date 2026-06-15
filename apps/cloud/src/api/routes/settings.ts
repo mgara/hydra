@@ -7,43 +7,55 @@ interface JwtPayload {
 }
 
 export async function registerSettingsRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/api/settings', {
+  // List all backup keys with timestamps
+  app.get('/api/data', {
     preHandler: [app.authenticate],
   }, async (req) => {
     const db = getDb();
     const { sub: userId } = req.user as JwtPayload;
-
     const result = await db.execute({
-      sql: 'SELECT data FROM settings WHERE user_id = ?',
+      sql: 'SELECT key, updated_at FROM data WHERE user_id = ? ORDER BY key',
       args: [userId],
     });
-
-    if (result.rows.length === 0) return { data: null };
-    return { data: JSON.parse(result.rows[0].data as string) };
+    return result.rows.map((r) => ({ key: r.key, updatedAt: r.updated_at }));
   });
 
-  app.put<{ Body: { data: Record<string, unknown> } }>('/api/settings', {
+  // Get one backup key
+  app.get<{ Params: { key: string } }>('/api/data/:key', {
+    preHandler: [app.authenticate],
+  }, async (req, reply) => {
+    const db = getDb();
+    const { sub: userId } = req.user as JwtPayload;
+    const result = await db.execute({
+      sql: 'SELECT value, updated_at FROM data WHERE user_id = ? AND key = ?',
+      args: [userId, req.params.key],
+    });
+    if (result.rows.length === 0) return reply.status(404).send({ error: 'Not found' });
+    return {
+      key: req.params.key,
+      data: JSON.parse(result.rows[0].value as string),
+      updatedAt: result.rows[0].updated_at,
+    };
+  });
+
+  // Save one backup key
+  app.put<{ Params: { key: string }; Body: { data: unknown } }>('/api/data/:key', {
     preHandler: [app.authenticate],
     schema: {
       body: {
         type: 'object',
         required: ['data'],
-        properties: {
-          data: { type: 'object' },
-        },
+        properties: { data: {} },
       },
     },
   }, async (req, reply) => {
     const db = getDb();
     const { sub: userId } = req.user as JwtPayload;
-    const data = JSON.stringify(req.body.data);
-
     await db.execute({
-      sql: `INSERT INTO settings (user_id, data) VALUES (?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET data = excluded.data, updated_at = datetime('now')`,
-      args: [userId, data],
+      sql: `INSERT INTO data (user_id, key, value) VALUES (?, ?, ?)
+            ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+      args: [userId, req.params.key, JSON.stringify(req.body.data)],
     });
-
     return reply.status(204).send();
   });
 }

@@ -10,7 +10,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import { THEMES, useTheme, type ThemeId } from '@/lib/theme';
 import { SOIL_PROFILES, PLANT_PROFILES, getSoilProfile, getPlantProfile, getPlantProfilesForZone, formatRate, formatLength } from '@/lib/zone-profiles';
 import { getStoredAuth, storeAuth, clearAuth, type CloudUser } from '@/lib/auth';
-import { login, register, getCloudSettings, putCloudSettings, CloudApiError } from '@/lib/cloudApi';
+import {
+  cloudLogin, cloudRegister, listBackupKeys, getBackupData, putBackupData, CloudApiError,
+  type SettingsBackup, type ZonesBackup, type SchedulesBackup, type FlowBackup, type SoilBackup,
+} from '@/lib/cloudApi';
 
 function useHasBg() {
   const { theme } = useTheme();
@@ -1279,17 +1282,31 @@ function CloudSyncCard({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const [progress, setProgress] = useState<string | null>(null);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const { theme, setTheme } = useTheme();
   const hasBg = useHasBg();
+
+  // Load last backup timestamp on sign-in
+  useEffect(() => {
+    if (!auth) return;
+    listBackupKeys(auth.token)
+      .then((keys) => {
+        const latest = keys.reduce<string | null>((max, k) =>
+          !max || k.updatedAt > max ? k.updatedAt : max, null);
+        setLastBackup(latest);
+      })
+      .catch(() => {});
+  }, [auth]);
 
   const handleAuth = async () => {
     setBusy(true);
     setStatus(null);
     try {
       const res = tab === 'login'
-        ? await login(username, password)
-        : await register(username, password);
+        ? await cloudLogin(username, password)
+        : await cloudRegister(username, password);
       storeAuth(res);
       setAuth(res);
       setUsername('');
@@ -1302,47 +1319,110 @@ function CloudSyncCard({
     }
   };
 
-  const handleSave = async () => {
+  const handleBackup = async () => {
     if (!auth) return;
     setBusy(true);
     setStatus(null);
     try {
-      await putCloudSettings(auth.token, {
+      setProgress('Backing up settings…');
+      const settingsBackup: SettingsBackup = {
         theme,
-        tempUnit: settings?.temp_unit,
-        lengthUnit: settings?.length_unit,
-      });
-      setStatus({ type: 'success', msg: 'Settings saved to cloud' });
+        temp_unit: settings?.temp_unit,
+        length_unit: settings?.length_unit,
+        weather_lat: settings?.weather_lat,
+        weather_lon: settings?.weather_lon,
+        weather_location_name: settings?.weather_location_name,
+      };
+      const hardiness = await api.getHardinessZone().catch(() => null);
+      if (hardiness?.zone) settingsBackup.hardinessZone = hardiness.zone;
+      await putBackupData(auth.token, 'settings', settingsBackup);
+
+      setProgress('Backing up zones…');
+      const profiles = await api.getZoneProfiles();
+      await putBackupData(auth.token, 'zones', profiles satisfies ZonesBackup);
+
+      setProgress('Backing up schedules…');
+      const schedules = await api.getSchedules();
+      const schedulesBackup: SchedulesBackup = schedules.map(
+        ({ zone, name, startTime, startMode, startOffset, durationMinutes, days, enabled, rainSkip, priority, smart, expiresAt }) =>
+          ({ zone, name, startTime, startMode, startOffset, durationMinutes, days, enabled, rainSkip, priority, smart, expiresAt })
+      );
+      await putBackupData(auth.token, 'schedules', schedulesBackup);
+
+      setProgress('Backing up flow settings…');
+      const flow = await api.getFlowSettings().catch(() => null);
+      if (flow) await putBackupData(auth.token, 'flowSettings', flow satisfies FlowBackup);
+
+      setProgress('Backing up soil settings…');
+      const soil = await api.getSoilSettings().catch(() => null);
+      if (soil) await putBackupData(auth.token, 'soilSettings', soil satisfies SoilBackup);
+
+      setProgress('Backing up irrigation history…');
+      const { logs } = await api.getLogs({ limit: 1000 });
+      await putBackupData(auth.token, 'logs', logs);
+
+      const now = new Date().toISOString();
+      setLastBackup(now);
+      setStatus({ type: 'success', msg: 'Full backup saved to cloud' });
     } catch (err) {
-      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Save failed' });
+      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Backup failed' });
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
-  const handleLoad = async () => {
+  const handleRestore = async () => {
     if (!auth) return;
     setBusy(true);
     setStatus(null);
     try {
-      const { data } = await getCloudSettings(auth.token);
-      if (!data) {
-        setStatus({ type: 'error', msg: 'No settings saved yet' });
-        return;
+      setProgress('Restoring settings…');
+      const { data: s } = await getBackupData<SettingsBackup>(auth.token, 'settings').catch(() => ({ data: null, key: '', updatedAt: '' }));
+      if (s) {
+        if (s.theme) setTheme(s.theme as ThemeId);
+        if (s.hardinessZone) await api.setHardinessZone(s.hardinessZone).catch(() => {});
+        const updates: Record<string, string> = {};
+        if (s.temp_unit) updates.temp_unit = s.temp_unit;
+        if (s.length_unit) updates.length_unit = s.length_unit;
+        if (s.weather_lat) updates.weather_lat = s.weather_lat;
+        if (s.weather_lon) updates.weather_lon = s.weather_lon;
+        if (s.weather_location_name) updates.weather_location_name = s.weather_location_name;
+        if (Object.keys(updates).length) await api.updateSettings(updates);
       }
-      if (data.theme) setTheme(data.theme as ThemeId);
-      const updates: Record<string, string> = {};
-      if (data.tempUnit) updates.temp_unit = data.tempUnit;
-      if (data.lengthUnit) updates.length_unit = data.lengthUnit;
-      if (Object.keys(updates).length > 0) {
-        await api.updateSettings(updates);
-        refetch();
+
+      setProgress('Restoring zones…');
+      const { data: zones } = await getBackupData<ZonesBackup>(auth.token, 'zones').catch(() => ({ data: null, key: '', updatedAt: '' }));
+      if (zones) {
+        for (const z of zones) {
+          await api.updateZone(z.zone, { name: z.name }).catch(() => {});
+          await api.updateZoneProfile(z.zone, { soilType: z.soilType, plantType: z.plantType, smartEnabled: z.smartEnabled }).catch(() => {});
+        }
       }
-      setStatus({ type: 'success', msg: 'Settings loaded from cloud' });
+
+      setProgress('Restoring schedules…');
+      const { data: schedulesBackup } = await getBackupData<SchedulesBackup>(auth.token, 'schedules').catch(() => ({ data: null, key: '', updatedAt: '' }));
+      if (schedulesBackup) {
+        const existing = await api.getSchedules().catch(() => []);
+        for (const s of existing) await api.deleteSchedule(s.id).catch(() => {});
+        for (const s of schedulesBackup) await api.createSchedule(s).catch(() => {});
+      }
+
+      setProgress('Restoring flow settings…');
+      const { data: flow } = await getBackupData<FlowBackup>(auth.token, 'flowSettings').catch(() => ({ data: null, key: '', updatedAt: '' }));
+      if (flow) await api.updateFlowSettings(flow).catch(() => {});
+
+      setProgress('Restoring soil settings…');
+      const { data: soil } = await getBackupData<SoilBackup>(auth.token, 'soilSettings').catch(() => ({ data: null, key: '', updatedAt: '' }));
+      if (soil) await api.updateSoilSettings(soil).catch(() => {});
+
+      refetch();
+      setStatus({ type: 'success', msg: 'Config restored from cloud' });
     } catch (err) {
-      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Load failed' });
+      setStatus({ type: 'error', msg: err instanceof CloudApiError ? err.message : 'Restore failed' });
     } finally {
       setBusy(false);
+      setProgress(null);
     }
   };
 
@@ -1350,7 +1430,10 @@ function CloudSyncCard({
     clearAuth();
     setAuth(null);
     setStatus(null);
+    setLastBackup(null);
   };
+
+  const inputCls = `w-full rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${hasBg ? 'glass bg-transparent' : 'bg-surface-container-low'}`;
 
   return (
     <Card className="p-6">
@@ -1371,42 +1454,22 @@ function CloudSyncCard({
               <button
                 key={t}
                 onClick={() => { setTab(t); setStatus(null); }}
-                className={`px-5 py-1.5 text-sm font-medium transition-colors ${
-                  tab === t
-                    ? 'bg-primary text-on-primary'
-                    : 'text-on-surface-variant hover:text-on-surface'
-                }`}
+                className={`px-5 py-1.5 text-sm font-medium transition-colors ${tab === t ? 'bg-primary text-on-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
               >
                 {t === 'login' ? 'Sign In' : 'Register'}
               </button>
             ))}
           </div>
-
           <div className="space-y-3 max-w-sm">
+            <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className={inputCls} />
             <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className={`w-full rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                hasBg ? 'glass bg-transparent' : 'bg-surface-container-low'
-              }`}
-            />
-            <input
-              type="password"
-              placeholder="Password (min 8 chars)"
-              value={password}
+              type="password" placeholder="Password (min 8 chars)" value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !busy && username && password.length >= 8 && handleAuth()}
-              className={`w-full rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                hasBg ? 'glass bg-transparent' : 'bg-surface-container-low'
-              }`}
+              className={inputCls}
             />
-            <button
-              onClick={handleAuth}
-              disabled={busy || !username || password.length < 8}
-              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-on-primary transition-opacity disabled:opacity-40"
-            >
+            <button onClick={handleAuth} disabled={busy || !username || password.length < 8}
+              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-medium text-on-primary transition-opacity disabled:opacity-40">
               {busy ? 'Please wait…' : tab === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           </div>
@@ -1414,49 +1477,47 @@ function CloudSyncCard({
       ) : (
         <div className="space-y-4">
           <p className="text-sm text-on-surface-variant">
-            Sync your theme and unit preferences across devices.
+            Back up zones, schedules, settings, and irrigation history to the cloud. Restore config to any controller.
           </p>
+          {lastBackup && (
+            <p className="text-xs text-on-surface-variant">
+              Last backup: {new Date(lastBackup).toLocaleString()}
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleSave}
-              disabled={busy}
-              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-on-primary transition-opacity disabled:opacity-40"
-            >
+            <button onClick={handleBackup} disabled={busy}
+              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-on-primary transition-opacity disabled:opacity-40">
               <Icon name="cloud_upload" size={16} />
-              Save to Cloud
+              Backup All
             </button>
-            <button
-              onClick={handleLoad}
-              disabled={busy}
-              className="flex items-center gap-2 rounded-xl border border-primary/40 px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-40"
-            >
+            <button onClick={handleRestore} disabled={busy}
+              className="flex items-center gap-2 rounded-xl border border-primary/40 px-5 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:opacity-40">
               <Icon name="cloud_download" size={16} />
-              Load from Cloud
+              Restore Config
             </button>
-            <button
-              onClick={handleLogout}
-              className="ml-auto flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-surface transition-colors"
-            >
+            <button onClick={handleLogout}
+              className="ml-auto flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-on-surface transition-colors">
               <Icon name="logout" size={14} />
               Sign out
             </button>
           </div>
+          <p className="text-xs text-on-surface-variant/60">
+            Restore applies zones, schedules, and settings. Irrigation history is archived to cloud only.
+          </p>
         </div>
       )}
 
-      {status && (
-        <p className={`mt-3 text-sm ${status.type === 'success' ? 'text-primary' : 'text-error'}`}>
-          {status.type === 'success' ? (
-            <span className="flex items-center gap-1.5">
-              <Icon name="check_circle" size={14} />
-              {status.msg}
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5">
-              <Icon name="error" size={14} />
-              {status.msg}
-            </span>
-          )}
+      {progress && (
+        <p className="mt-3 text-sm text-on-surface-variant flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
+          {progress}
+        </p>
+      )}
+
+      {!progress && status && (
+        <p className={`mt-3 text-sm flex items-center gap-1.5 ${status.type === 'success' ? 'text-primary' : 'text-error'}`}>
+          <Icon name={status.type === 'success' ? 'check_circle' : 'error'} size={14} />
+          {status.msg}
         </p>
       )}
     </Card>
