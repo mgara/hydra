@@ -1,17 +1,16 @@
-import { createClient, type Client } from '@libsql/client';
+import postgres, { type Sql } from 'postgres';
 import { initSchema } from './schema.js';
 
-let client: Client;
+let db: Sql;
 
 export async function initDb(): Promise<void> {
-  const url = process.env.DB_URL ?? 'file:./data/cloud.db';
-  client = createClient({ url });
-  await client.execute('PRAGMA journal_mode = WAL');
-  await client.execute('PRAGMA foreign_keys = ON');
-  await initSchema(client);
+  const url = process.env.DB_URL;
+  if (!url) throw new Error('DB_URL env var is required (postgres connection string)');
+  db = postgres(url, { ssl: process.env.NODE_ENV === 'production' ? 'require' : false });
+  await initSchema(db);
 }
 
-export function getDb(): Client {
-  if (!client) throw new Error('DB not initialised — call initDb() first');
-  return client;
+export function getDb(): Sql {
+  if (!db) throw new Error('DB not initialised — call initDb() first');
+  return db;
 }

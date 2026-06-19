@@ -1,32 +1,22 @@
-import type { Client } from '@libsql/client';
+import type { Sql } from 'postgres';
 
-export async function initSchema(db: Client): Promise<void> {
-  await db.executeMultiple(`
+export async function initSchema(sql: Sql): Promise<void> {
+  await sql`
     CREATE TABLE IF NOT EXISTS users (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      username      TEXT    NOT NULL UNIQUE,
-      password_hash TEXT    NOT NULL,
-      created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-    );
+      id            SERIAL PRIMARY KEY,
+      username      TEXT        NOT NULL UNIQUE,
+      password_hash TEXT        NOT NULL,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 
+  await sql`
     CREATE TABLE IF NOT EXISTS data (
-      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      key        TEXT    NOT NULL,
-      value      TEXT    NOT NULL DEFAULT '{}',
-      updated_at TEXT    NOT NULL DEFAULT (datetime('now')),
+      user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      key        TEXT        NOT NULL,
+      value      JSONB       NOT NULL DEFAULT '{}',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       PRIMARY KEY (user_id, key)
-    );
-  `);
-
-  // Migrate old single-row settings table if it exists
-  const tables = await db.execute(
-    `SELECT name FROM sqlite_master WHERE type='table' AND name='settings'`
-  );
-  if (tables.rows.length > 0) {
-    await db.executeMultiple(`
-      INSERT OR IGNORE INTO data (user_id, key, value, updated_at)
-        SELECT user_id, 'settings', data, updated_at FROM settings;
-      DROP TABLE settings;
-    `);
-  }
+    )
+  `;
 }
